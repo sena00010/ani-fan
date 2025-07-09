@@ -5,185 +5,401 @@ import {
     MapPin,
     Calendar,
     Star,
-    Heart,
     MessageCircle,
     Settings,
-    Edit,
     Play,
     BookOpen,
     Eye,
-    Clock,
-    Award,
     Users,
-    TrendingUp,
-    Plus,
+    Camera,
     Save,
     X,
-    Camera
+    FileText,
+    Heart
 } from 'lucide-react';
+import OverviewTab from "@/components/tabs/OverviewTab";
+import AnimeListTab from "@/components/tabs/AnimeListTab";
+import MangaListTab from "@/components/tabs/MangaListTab";
+import ProfileDetailsTab from "@/components/tabs/ProfileDetailsTab";
+import SocialTab from "@/components/tabs/SocialTab";
+import toast from 'react-hot-toast';
+import userService from "@/services/userService";
 
+// ProfileEditModal component
+interface ProfileEditModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    userProfile: {
+        user_name: string;
+        user_surname: string;
+        user_nick_name: string;
+        bio: string;
+        birth_date: string | null;
+        location: string;
+        hobbies: string;
+        profile_image: string;
+    };
+    onSave: (updatedProfile: any) => void;
+}
+
+const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
+                                                               isOpen,
+                                                               onClose,
+                                                               userProfile,
+                                                               onSave
+                                                           }) => {
+    console.log(userProfile,"userProfile");
+    const [formData, setFormData] = useState({
+        user_name: userProfile.user_name || '',
+        user_surname: userProfile.user_surname || '',
+        user_nick_name: userProfile.user_nick_name || '',
+        bio: userProfile.bio || '',
+        birth_date: userProfile.birth_date || '',
+        location: userProfile.location || '',
+        hobbies: userProfile.hobbies || '',
+        profile_image: userProfile.profile_image || ''
+    });
+
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleInputChange = (field: string, value: string) => {
+        setFormData(prev => ({
+            ...prev,
+            [field]: value
+        }));
+    };
+
+    const handleSave = async () => {
+        setIsLoading(true);
+        try {
+            await onSave(formData);
+            onClose();
+        } catch (error) {
+            console.error('Profil güncelleme hatası:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+                {/* Header */}
+                <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                    <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                        <User className="w-6 h-6 text-blue-600" />
+                        Profili Düzenle
+                    </h2>
+                    <button
+                        onClick={onClose}
+                        className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                {/* Form Content */}
+                <div className="p-6 space-y-6">
+
+                    {/* Profil Fotoğrafı */}
+                    <div className="text-center">
+                        <div className="relative inline-block">
+                            <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                                {formData.profile_image ? (
+                                    <img
+                                        src={formData.profile_image}
+                                        alt="Profil"
+                                        className="w-full h-full rounded-full object-cover"
+                                    />
+                                ) : (
+                                    formData.user_name?.charAt(0).toUpperCase() || 'U'
+                                )}
+                            </div>
+                            <button className="absolute -bottom-2 -right-2 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors shadow-lg">
+                                <Camera className="w-4 h-4" />
+                            </button>
+                        </div>
+                        <p className="text-sm text-gray-500 mt-2">Profil fotoğrafını değiştir</p>
+                    </div>
+
+                    {/* İsim ve Soyisim */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                İsim
+                            </label>
+                            <input
+                                type="text"
+                                value={formData.user_name}
+                                onChange={(e) => handleInputChange('user_name', e.target.value)}
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                placeholder="İsminizi girin"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                Soyisim
+                            </label>
+                            <input
+                                type="text"
+                                value={formData.user_surname}
+                                onChange={(e) => handleInputChange('user_surname', e.target.value)}
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                placeholder="Soyisminizi girin"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Kullanıcı Adı */}
+                    <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Kullanıcı Adı
+                        </label>
+                        <input
+                            type="text"
+                            value={formData.user_nick_name}
+                            onChange={(e) => handleInputChange('user_nick_name', e.target.value)}
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                            placeholder="Kullanıcı adınızı girin"
+                        />
+                    </div>
+
+                    {/* Bio */}
+                    <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                            <FileText className="w-4 h-4" />
+                            Bio
+                        </label>
+                        <textarea
+                            value={formData.bio}
+                            onChange={(e) => handleInputChange('bio', e.target.value)}
+                            rows={4}
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                            placeholder="Kendinizden bahsedin..."
+                            maxLength={300}
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                            {formData.bio.length}/300 karakter
+                        </p>
+                    </div>
+
+                    {/* Doğum Tarihi ve Konum */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                                <Calendar className="w-4 h-4" />
+                                Doğum Tarihi
+                            </label>
+                            <input
+                                type="date"
+                                value={formData.birth_date}
+                                onChange={(e) => handleInputChange('birth_date', e.target.value)}
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                                <MapPin className="w-4 h-4" />
+                                Konum
+                            </label>
+                            <input
+                                type="text"
+                                value={formData.location}
+                                onChange={(e) => handleInputChange('location', e.target.value)}
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                placeholder="Şehir, Ülke"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Hobiler */}
+                    <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                            <Heart className="w-4 h-4" />
+                            Hobiler
+                        </label>
+                        <textarea
+                            value={formData.hobbies}
+                            onChange={(e) => handleInputChange('hobbies', e.target.value)}
+                            rows={3}
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                            placeholder="Anime izlemek, manga okumak, oyun oynamak..."
+                        />
+                    </div>
+
+                    {/* Profil Fotoğraf URL */}
+                    <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                            <Camera className="w-4 h-4" />
+                            Profil Fotoğraf URL
+                        </label>
+                        <input
+                            type="url"
+                            value={formData.profile_image}
+                            onChange={(e) => handleInputChange('profile_image', e.target.value)}
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                            placeholder="https://example.com/profil-foto.jpg"
+                        />
+                    </div>
+                </div>
+
+                {/* Footer Buttons */}
+                <div className="flex gap-3 p-6 border-t border-gray-200">
+                    <button
+                        onClick={onClose}
+                        className="flex-1 px-6 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
+                    >
+                        İptal
+                    </button>
+                    <button
+                        onClick={handleSave}
+                        disabled={isLoading}
+                        className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                        {isLoading ? (
+                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        ) : (
+                            <Save className="w-5 h-5" />
+                        )}
+                        {isLoading ? 'Kaydediliyor...' : 'Kaydet'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// Sidebar component (geçici olarak burada tanımlayalım)
+const Sidebar = ({ userData }: { userData: any }) => (
+    <div className="space-y-6">
+        <div className="bg-white rounded-xl shadow-sm p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Favori Türler</h3>
+            <div className="flex flex-wrap gap-2">
+                {userData.favoriteGenres?.map((genre: string, index: number) => (
+                    <span key={index} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+                        {genre}
+                    </span>
+                ))}
+            </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Favori Karakterler</h3>
+            <div className="space-y-3">
+                {userData.favoriteCharacters?.map((character: string, index: number) => (
+                    <div key={index} className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
+                        <span className="text-sm text-gray-700">{character}</span>
+                    </div>
+                ))}
+            </div>
+        </div>
+    </div>
+);
+
+// Ana AnimeProfilePage component
 const AnimeProfilePage = (initialData: any) => {
-    console.log(initialData,"initialData");
     const [activeTab, setActiveTab] = useState('overview');
-    const [isEditing, setIsEditing] = useState(false);
-    const [editingField, setEditingField] = useState(null);
-    // Sample user data - senin backend'den gelecek
-    const userBackendData=initialData.initialData.user;
-    console.log(initialData.initialData.user,"initialData2");
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+    const userBackendData = initialData.initialData?.user;
+    const currentUserId = userBackendData.id; // Bunu prop olarak almak gerekecek
 
     const [userData, setUserData] = useState({
-        name: userBackendData?.user_name,
-        username: userBackendData?.user_nick_name,
-        avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b647?w=150&h=150&fit=crop&crop=face",
-        bio: "Anime ve manga tutkunu 🌸 Her gün yeni bir hikaye keşfetmeyi seviyorum!",
-        location: "İstanbul, Türkiye",
-        joinDate: initialData?.currentUser?.metadata?.creationTime,
-        birthDate: "1995-03-15",
+        user_id: userBackendData.id,
+        name: userBackendData?.user_name || '',
+        surname: userBackendData?.user_surname || '',
+        username: userBackendData?.user_nick_name || '',
+        avatar: userBackendData?.profile_image || "https://images.unsplash.com/photo-1494790108755-2616b612b647?w=150&h=150&fit=crop&crop=face",
+        bio: userBackendData?.bio || "Anime ve manga tutkunu 🌸 Her gün yeni bir hikaye keşfetmeyi seviyorum!",
+        location: userBackendData?.location || "İstanbul, Türkiye",
+        joinDate: userBackendData?.member_since || initialData?.currentUser?.metadata?.creationTime,
+        birthDate: userBackendData?.birth_date || "1995-03-15",
+        hobbies: userBackendData?.hobbies || "Anime izleme, manga okuma, çizim yapma, cosplay",
         verified: true,
         rank: "Anime Enthusiast",
         level: 12,
         points: 1547,
         totalFollowers: 342,
         totalFollowing: 156,
-        // user_detail tablosundan gelecek veriler
         favoriteGenres: ["Slice of Life", "Romance", "Comedy", "Drama"],
         favoriteCharacters: ["Violet Evergarden", "Senku Ishigami", "Tanjiro"],
-        hobbies: "Anime izleme, manga okuma, çizim yapma, cosplay",
         stats: {
-            animeCount: 127,
-            mangaCount: 89,
+            animeCount: userBackendData?.anime_count || 127,
+            mangaCount: userBackendData?.manga_count || 89,
             episodesWatched: 2847,
             chaptersRead: 1205,
-            totalWatchTime: 23.5, // days
+            totalWatchTime: userBackendData?.total_watch_time ? Math.floor(userBackendData.total_watch_time / 60) : 23.5,
             meanScore: 8.2
         }
     });
 
-    const animeList = [
-        {
-            id: 1,
-            title: "Attack on Titan",
-            image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=200&h=280&fit=crop",
-            status: "completed",
-            score: 10,
-            episodes: "75/75",
-            type: "TV"
-        },
-        {
-            id: 2,
-            title: "Demon Slayer",
-            image: "https://images.unsplash.com/photo-1611351236491-80a8f0f1dd93?w=200&h=280&fit=crop",
-            status: "watching",
-            score: 9,
-            episodes: "32/44",
-            type: "TV"
-        },
-        {
-            id: 3,
-            title: "Your Name",
-            image: "https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=200&h=280&fit=crop",
-            status: "completed",
-            score: 10,
-            episodes: "1/1",
-            type: "Movie"
+    // Profil güncelleme fonksiyonu
+    const handleProfileUpdate = async (updatedData: any) => {
+        if (!currentUserId) {
+            toast.error('Kullanıcı ID bulunamadı');
+            return;
         }
+
+        try {
+            await userService.updateUserProfile(currentUserId, updatedData);
+
+            // Local state'i güncelle
+            setUserData(prev => ({
+                ...prev,
+                name: updatedData.user_name,
+                surname: updatedData.user_surname,
+                username: updatedData.user_nick_name,
+                bio: updatedData.bio,
+                location: updatedData.location,
+                birthDate: updatedData.birth_date,
+                hobbies: updatedData.hobbies,
+                avatar: updatedData.profile_image
+            }));
+
+            toast.success('Profil başarıyla güncellendi!');
+            setIsEditModalOpen(false);
+        } catch (error) {
+            console.error('Profil güncelleme hatası:', error);
+            toast.error('Profil güncellenirken bir hata oluştu');
+        }
+    };
+
+    const tabs = [
+        { id: 'overview', label: 'Genel Bakış', icon: Eye },
+        { id: 'anime', label: 'Anime Listesi', icon: Play },
+        { id: 'manga', label: 'Manga Listesi', icon: BookOpen },
+        { id: 'profile', label: 'Profil Detayları', icon: User },
+        { id: 'social', label: 'Sosyal', icon: Users }
     ];
 
-    const getStatusColor = (status: string) => {
-        switch(status) {
-            case 'watching': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-            case 'completed': return 'bg-blue-50 text-blue-700 border-blue-200';
-            case 'on-hold': return 'bg-amber-50 text-amber-700 border-amber-200';
-            case 'dropped': return 'bg-red-50 text-red-700 border-red-200';
-            case 'plan-to-watch': return 'bg-gray-50 text-gray-700 border-gray-200';
-            default: return 'bg-gray-50 text-gray-700 border-gray-200';
+    const renderTabContent = () => {
+        switch(activeTab) {
+            case 'overview':
+                return <OverviewTab userData={userData} />;
+            case 'anime':
+                return <AnimeListTab userData={userData} />;
+            case 'manga':
+                return <MangaListTab userData={userData} />;
+            case 'profile':
+                return <ProfileDetailsTab userData={userData} editingField={null}
+                                          setEditingField={function (field: string | null): void {
+                                              throw new Error('Function not implemented.');
+                                          }} handleSave={function (field: string, value: string): void {
+                    throw new Error('Function not implemented.');
+                }} />;
+            case 'social':
+                return <SocialTab userData={userData} />;
+            default:
+                return <OverviewTab userData={userData} />;
         }
-    };
-
-    const renderStars = (score: number) => {
-        const stars = [];
-        const fullStars = Math.floor(score / 2);
-        const hasHalfStar = score % 2 !== 0;
-
-        for (let i = 0; i < fullStars; i++) {
-            stars.push(<Star key={i} className="w-4 h-4 text-amber-400 fill-amber-400" />);
-        }
-
-        if (hasHalfStar) {
-            stars.push(<Star key="half" className="w-4 h-4 text-amber-400 fill-amber-400" />);
-        }
-
-        const emptyStars = 5 - Math.ceil(score / 2);
-        for (let i = 0; i < emptyStars; i++) {
-            stars.push(<Star key={`empty-${i}`} className="w-4 h-4 text-gray-300" />);
-        }
-
-        return stars;
-    };
-
-    const handleSave = (field: any, value: any) => {
-        setUserData(prev => ({
-            ...prev,
-            [field]: value
-        }));
-        setEditingField(null);
-    };
-
-    const EditableField = ({ field, value, type = "text", multiline = false }) => {
-        const [tempValue, setTempValue] = useState(value);
-
-        if (editingField === field) {
-            return (
-                <div className="flex items-center gap-2">
-                    {multiline ? (
-                        <textarea
-                            value={tempValue}
-                            onChange={(e) => setTempValue(e.target.value)}
-                            className="flex-1 p-2 border border-gray-300 rounded-lg resize-none"
-                            rows={3}
-                            autoFocus
-                        />
-                    ) : (
-                        <input
-                            type={type}
-                            value={tempValue}
-                            onChange={(e) => setTempValue(e.target.value)}
-                            className="flex-1 p-2 border border-gray-300 rounded-lg"
-                            autoFocus
-                        />
-                    )}
-                    <button
-                        onClick={() => handleSave(field, tempValue)}
-                        className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                    >
-                        <Save className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => setEditingField(null)}
-                        className="p-2 text-gray-500 hover:bg-gray-50 rounded-lg transition-colors"
-                    >
-                        <X className="w-4 h-4" />
-                    </button>
-                </div>
-            );
-        }
-
-        return (
-            <div className="flex items-center justify-between group">
-                <span className={multiline ? "whitespace-pre-wrap" : ""}>{value}</span>
-                <button
-                    onClick={() => setEditingField(field)}
-                    className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-gray-600 transition-all"
-                >
-                    <Edit className="w-4 h-4" />
-                </button>
-            </div>
-        );
     };
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Header Section - Sadeleştirilmiş */}
+            {/* Header Section */}
             <div className="relative bg-white border-b border-gray-200">
                 <div className="container mx-auto px-6 py-8">
                     <div className="flex flex-col md:flex-row items-center md:items-end gap-8">
@@ -196,7 +412,10 @@ const AnimeProfilePage = (initialData: any) => {
                                     className="w-full h-full object-cover"
                                 />
                             </div>
-                            <button className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 rounded-full transition-opacity">
+                            <button
+                                onClick={() => setIsEditModalOpen(true)}
+                                className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 rounded-full transition-opacity"
+                            >
                                 <Camera className="w-6 h-6 text-white" />
                             </button>
                             <div className="absolute -bottom-2 -right-2 bg-blue-500 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-sm shadow-lg">
@@ -208,7 +427,7 @@ const AnimeProfilePage = (initialData: any) => {
                         <div className="flex-1 text-center md:text-left space-y-4">
                             <div className="flex items-center justify-center md:justify-start gap-3">
                                 <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
-                                    <EditableField field="name" value={userData.name} />
+                                    {userData.name} {userData.surname}
                                 </h1>
                                 {userData.verified && (
                                     <div className="bg-blue-500 rounded-full p-1">
@@ -218,18 +437,18 @@ const AnimeProfilePage = (initialData: any) => {
                             </div>
 
                             <div className="flex items-center justify-center md:justify-start gap-4 text-gray-600">
-                <span className="flex items-center gap-1">
-                  <MapPin className="w-4 h-4" />
-                  <EditableField field="location" value={userData.location} />
-                </span>
                                 <span className="flex items-center gap-1">
-                  <Calendar className="w-4 h-4" />
-                                    {userData.joinDate} tarihinde katıldı
-                </span>
+                                    <MapPin className="w-4 h-4" />
+                                    {userData.location}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                    <Calendar className="w-4 h-4" />
+                                    {userData.joinDate ? new Date(userData.joinDate).toLocaleDateString('tr-TR') : ''} tarihinde katıldı
+                                </span>
                             </div>
 
                             <div className="max-w-2xl">
-                                <EditableField field="bio" value={userData.bio} multiline />
+                                <p className="text-gray-700">{userData.bio}</p>
                             </div>
 
                             <div className="flex flex-wrap gap-3 justify-center md:justify-start">
@@ -248,9 +467,12 @@ const AnimeProfilePage = (initialData: any) => {
                                 <MessageCircle className="w-5 h-5" />
                                 Mesaj
                             </button>
-                            <button className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl flex items-center gap-2 transition-colors">
+                            <button
+                                onClick={() => setIsEditModalOpen(true)}
+                                className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl flex items-center gap-2 transition-colors"
+                            >
                                 <Settings className="w-5 h-5" />
-                                Ayarlar
+                                Profili Düzenle
                             </button>
                         </div>
                     </div>
@@ -284,7 +506,7 @@ const AnimeProfilePage = (initialData: any) => {
                         </div>
                         <div className="text-center">
                             <div className="text-2xl font-bold text-gray-900">{userData.stats.meanScore}</div>
-                            <div className="text-sm text-gray-500 flex items-center justify-center gap-1">
+                            <div className="text-sm text-gray-500 flex items-center gap-1 justify-center">
                                 <Star className="w-4 h-4" />
                                 Ortalama Puan
                             </div>
@@ -297,13 +519,7 @@ const AnimeProfilePage = (initialData: any) => {
             <div className="bg-white border-b border-gray-200">
                 <div className="container mx-auto px-6">
                     <div className="flex overflow-x-auto">
-                        {[
-                            { id: 'overview', label: 'Genel Bakış', icon: Eye },
-                            { id: 'anime', label: 'Anime Listesi', icon: Play },
-                            { id: 'manga', label: 'Manga Listesi', icon: BookOpen },
-                            { id: 'profile', label: 'Profil Detayları', icon: User },
-                            { id: 'social', label: 'Sosyal', icon: Users }
-                        ].map((tab) => {
+                        {tabs.map((tab) => {
                             const Icon = tab.icon;
                             return (
                                 <button
@@ -329,231 +545,31 @@ const AnimeProfilePage = (initialData: any) => {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Main Content */}
                     <div className="lg:col-span-2">
-                        {activeTab === 'overview' && (
-                            <div className="space-y-8">
-                                {/* Quick Stats */}
-                                <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-                                    <h3 className="text-xl font-bold text-gray-900 mb-6">İstatistikler</h3>
-                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                                        <div className="text-center p-4 bg-blue-50 rounded-xl border border-blue-100">
-                                            <div className="text-2xl font-bold text-blue-600">{userData.stats.episodesWatched}</div>
-                                            <div className="text-sm text-gray-600">Bölüm İzlendi</div>
-                                        </div>
-                                        <div className="text-center p-4 bg-emerald-50 rounded-xl border border-emerald-100">
-                                            <div className="text-2xl font-bold text-emerald-600">{userData.stats.chaptersRead}</div>
-                                            <div className="text-sm text-gray-600">Bölüm Okundu</div>
-                                        </div>
-                                        <div className="text-center p-4 bg-purple-50 rounded-xl border border-purple-100">
-                                            <div className="text-2xl font-bold text-purple-600">{userData.stats.totalWatchTime}</div>
-                                            <div className="text-sm text-gray-600">Gün İzledi</div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Recent Activity */}
-                                <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-                                    <h3 className="text-xl font-bold text-gray-900 mb-6">Son Aktiviteler</h3>
-                                    <div className="space-y-4">
-                                        {[
-                                            { type: 'completed', title: 'Attack on Titan', action: 'tamamladı', time: '2 saat önce' },
-                                            { type: 'watching', title: 'Demon Slayer', action: 'izlemeye başladı', time: '1 gün önce' },
-                                            { type: 'scored', title: 'Your Name', action: 'puanladı (10/10)', time: '3 gün önce' }
-                                        ].map((activity, index) => (
-                                            <div key={index} className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
-                                                <div className="w-12 h-16 bg-gradient-to-br from-gray-400 to-gray-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">
-                                                    {activity.title.split(' ').map(w => w[0]).join('').slice(0, 2)}
-                                                </div>
-                                                <div className="flex-1">
-                                                    <p className="text-gray-900">
-                                                        <span className="font-medium">{activity.title}</span> {activity.action}
-                                                    </p>
-                                                    <p className="text-sm text-gray-500">{activity.time}</p>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {activeTab === 'anime' && (
-                            <div className="space-y-6">
-                                <div className="flex justify-between items-center">
-                                    <h2 className="text-2xl font-bold text-gray-900">Anime Listesi</h2>
-                                    <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 transition-colors">
-                                        <Plus className="w-4 h-4" />
-                                        Anime Ekle
-                                    </button>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {animeList.map((anime) => (
-                                        <div key={anime.id} className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200 hover:shadow-md transition-shadow">
-                                            <div className="flex">
-                                                <div className="w-24 h-32 bg-gray-200 flex-shrink-0">
-                                                    <img
-                                                        src={anime.image}
-                                                        alt={anime.title}
-                                                        className="w-full h-full object-cover"
-                                                    />
-                                                </div>
-                                                <div className="p-4 flex-1">
-                                                    <h3 className="font-semibold text-gray-900 mb-2">{anime.title}</h3>
-                                                    <div className="flex items-center gap-2 mb-2">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(anime.status)}`}>
-                              {anime.status === 'watching' ? 'İzliyor' :
-                                  anime.status === 'completed' ? 'Tamamlandı' : anime.status}
-                            </span>
-                                                        <span className="text-xs text-gray-500">{anime.type}</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-2 mb-2">
-                                                        <div className="flex">
-                                                            {renderStars(anime.score)}
-                                                        </div>
-                                                        <span className="text-sm text-gray-600">{anime.score}/10</span>
-                                                    </div>
-                                                    <p className="text-sm text-gray-500">{anime.episodes} bölüm</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {activeTab === 'profile' && (
-                            <div className="space-y-6">
-                                <h2 className="text-2xl font-bold text-gray-900">Profil Detayları</h2>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {/* Kişisel Bilgiler */}
-                                    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-                                        <h3 className="text-lg font-bold text-gray-900 mb-4">Kişisel Bilgiler</h3>
-                                        <div className="space-y-4">
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Doğum Tarihi</label>
-                                                <EditableField field="birthDate" value={userData.birthDate} type="date" />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Konum</label>
-                                                <EditableField field="location" value={userData.location} />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Hobilerim</label>
-                                                <EditableField field="hobbies" value={userData.hobbies} multiline />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Anime Tercihleri */}
-                                    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-                                        <h3 className="text-lg font-bold text-gray-900 mb-4">Anime Tercihleri</h3>
-                                        <div className="space-y-4">
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-2">Favori Türler</label>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {userData.favoriteGenres.map((genre, index) => (
-                                                        <span key={index} className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm border border-blue-200">
-                              {genre}
-                            </span>
-                                                    ))}
-                                                    <button className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm border border-gray-200 hover:bg-gray-200 transition-colors">
-                                                        <Plus className="w-3 h-3" />
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-2">Favori Karakterler</label>
-                                                <div className="space-y-2">
-                                                    {userData.favoriteCharacters.map((character, index) => (
-                                                        <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                                                            <span className="text-sm">{character}</span>
-                                                            <button className="text-gray-400 hover:text-red-500">
-                                                                <X className="w-4 h-4" />
-                                                            </button>
-                                                        </div>
-                                                    ))}
-                                                    <button className="w-full p-2 bg-gray-100 text-gray-600 rounded-lg border border-dashed border-gray-300 hover:bg-gray-200 transition-colors">
-                                                        <Plus className="w-4 h-4 mx-auto" />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Diğer tab'lar aynı şekilde... */}
+                        {renderTabContent()}
                     </div>
 
                     {/* Sidebar */}
-                    <div className="space-y-6">
-                        {/* Currently Watching */}
-                        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-                            <h3 className="text-lg font-bold text-gray-900 mb-4">Şu An İzliyor</h3>
-                            <div className="space-y-3">
-                                {animeList.filter(anime => anime.status === 'watching').map((anime) => (
-                                    <div key={anime.id} className="flex items-center gap-3">
-                                        <div className="w-12 h-16 bg-gray-200 rounded-lg flex-shrink-0">
-                                            <img
-                                                src={anime.image}
-                                                alt={anime.title}
-                                                className="w-full h-full object-cover rounded-lg"
-                                            />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h4 className="font-medium text-gray-900 truncate">{anime.title}</h4>
-                                            <p className="text-sm text-gray-500">{anime.episodes}</p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Quick Stats */}
-                        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-                            <h3 className="text-lg font-bold text-gray-900 mb-4">Hızlı İstatistikler</h3>
-                            <div className="space-y-3">
-                                <div className="flex justify-between">
-                                    <span className="text-gray-600">Toplam İzlenen:</span>
-                                    <span className="font-medium">{userData.stats.animeCount} anime</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-gray-600">Toplam Süre:</span>
-                                    <span className="font-medium">{userData.stats.totalWatchTime} gün</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-gray-600">Ortalama Puan:</span>
-                                    <span className="font-medium">{userData.stats.meanScore}/10</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Achievements */}
-                        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-                            <h3 className="text-lg font-bold text-gray-900 mb-4">Son Başarımlar</h3>
-                            <div className="space-y-3">
-                                {[
-                                    { name: 'İlk Anime', earned: true },
-                                    { name: 'Anime Tutkunu', earned: true },
-                                    { name: 'Sosyal Kelebek', earned: true }
-                                ].map((achievement, index) => (
-                                    <div key={index} className={`flex items-center gap-3 p-3 rounded-xl ${achievement.earned ? 'bg-amber-50 border border-amber-200' : 'bg-gray-50 border border-gray-200'}`}>
-                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${achievement.earned ? 'bg-amber-400 text-amber-900' : 'bg-gray-300 text-gray-500'}`}>
-                                            <Award className="w-4 h-4" />
-                                        </div>
-                                        <span className={`font-medium ${achievement.earned ? 'text-gray-900' : 'text-gray-500'}`}>
-                      {achievement.name}
-                    </span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
+                    <Sidebar userData={userData} />
                 </div>
             </div>
+
+            {/* Profile Edit Modal */}
+            <ProfileEditModal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                userProfile={{
+                    user_id:userData.user_id,
+                    user_name: userData.name,
+                    user_surname: userData.surname,
+                    user_nick_name: userData.username,
+                    bio: userData.bio,
+                    birth_date: userData.birthDate,
+                    location: userData.location,
+                    hobbies: userData.hobbies,
+                    profile_image: userData.avatar
+                }}
+                onSave={handleProfileUpdate}
+            />
         </div>
     );
 };
