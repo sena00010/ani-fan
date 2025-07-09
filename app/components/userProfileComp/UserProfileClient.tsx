@@ -21,8 +21,8 @@ const UserProfileClient: React.FC<UserProfileClientProps> = ({
 
         return () => unsubscribe();
     }, []);
-
-    console.log(user,"user");
+    console.log(initialData,"initialDatainitialDatainitialData")
+    console.log(user,"user111111");
     if (!user || !initialData) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50">

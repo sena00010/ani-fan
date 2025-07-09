@@ -8,7 +8,9 @@ export default async function Profile() {
     }
     console.log(serverUser,"serverUser")
     const userInformation = await preloadUserProfileInformation(serverUser.uid);
-
+    console.log(serverUser,"serverUser")
+    console.log(serverUser.uid,"serverUser.uid")
+    console.log(userInformation,"userInformation")
     if (!userInformation) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -30,7 +32,6 @@ export default async function Profile() {
     return (
         <UserProfileClient
             initialData={userInformation}
-            currentUserId={serverUser.uid}
         />
     );
 }

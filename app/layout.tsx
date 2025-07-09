@@ -1,6 +1,5 @@
 import React from "react";
 import "./globals.css";
-import { Providers } from "@/providers";
 import type { Metadata } from "next";
 // import { preloadSeoSettings, preloadGeneralSettings } from "@/lib/server/preloadData";
 import generateMeta from "@/lib/seo/metadataUtils";
@@ -23,12 +22,10 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Providers>
           <Header />
           <Toaster position="top-right" />
           {children}
           {/*<Footer settings={settings} />*/}
-        </Providers>
       </body>
     </html>
   );
