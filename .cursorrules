@@ -1,0 +1,72 @@
+Before we dive into the best practices, please note that you need to adapt the globs depending on your project's specific file structure and requirements.
+
+---
+name: nextjs-best-practices.mdc
+description: Best practices for Next.js applications and routing
+globs: **/*.{ts,tsx,js,jsx}
+---
+
+- Use Server-Side Rendering (SSR) and Static Site Generation (SSG) to optimize initial load times
+- Implement dynamic imports to split and load code on demand, reducing bundle size
+- Use `next/headers` and `next/csrf` to protect against XSS and CSRF vulnerabilities
+- Implement input validation and sanitization in API routes
+
+---
+name: nodejs-best-practices.mdc
+description: Best practices for Node.js backend development
+globs: **/*.{ts,js}
+---
+
+- Use `async/await` and `Promise.all` for efficient I/O operations
+- For simple backends, use early returns and minimal middleware in `server.js` for better performance
+- Implement proper error handling and logging mechanisms
+
+---
+name: tailwindcss-best-practices.mdc
+description: Best practices for styling with Tailwind CSS
+globs: **/*.{ts,tsx,js,jsx,css}
+---
+
+- Utilize Just-In-Time (JIT) mode to keep CSS file size small
+- Use Tailwind classes directly in HTML, minimizing custom CSS and inline styles
+- Prefer `class:` syntax over ternary operators for conditional styling
+
+---
+name: react-best-practices.mdc
+description: Best practices for React component development
+globs: **/*.{ts,tsx,js,jsx}
+---
+
+- Use React Context API for state management across components
+- Implement server state management with React Query or SWR
+- Use `handle` prefix for event handler functions (e.g., `handleClick`, `handleKeyDown`)
+- Prefer `const` over `function` for defining functions, and use type annotations when necessary
+
+---
+name: security-best-practices.mdc
+description: Security best practices for web applications
+globs: **/*.{ts,tsx,js,jsx}
+---
+
+- Implement proper input validation and sanitization in all user inputs
+- Use environment variables for sensitive information and manage them securely
+- Ensure all interactive elements have proper accessibility attributes (e.g., `tabIndex`, `aria-label`)
+
+---
+name: project-structure-best-practices.mdc
+description: Best practices for organizing project structure
+globs: **/*.{ts,tsx,js,jsx}
+---
+
+- Use feature-based or atomic design folder structure
+- Create separate folders for reusable hooks and utilities
+- Centralize management of constants and type definitions
+
+---
+name: deployment-best-practices.mdc
+description: Best practices for deploying web applications
+globs: **/*.{ts,tsx,js,jsx}
+---
+
+- Maintain separate configurations for development and production environments
+- Follow Docker containerization best practices for consistent deployments
