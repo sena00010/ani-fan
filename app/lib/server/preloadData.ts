@@ -28,6 +28,7 @@ export async function preloadUserProfileInformation(userId: string | null) {
     const response = await axios.get(`${API_BASE_URL}/getUserProfileInformation`, {
       params: { userId }
     });
+    console.log(response,"senaresponse");
 
     if (response.data && response.data.user) {
       return response.data;
@@ -36,6 +37,23 @@ export async function preloadUserProfileInformation(userId: string | null) {
     return null;
   } catch (error) {
     console.error('Kullanıcı profil bilgilerini getirme hatası:', error);
+    return null;
+  }
+}
+export async function preloadGetMangasList() {
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8083';
+
+  try {
+    const response = await axios.get(`${API_BASE_URL}/getMangas`);
+    console.log(response, "getMangas");
+
+    if (response.data) {
+      return response.data; // ✅ Sadece data kısmını döndür
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Manga listesi getirilirken hata oluştu:', error);
     return null;
   }
 }

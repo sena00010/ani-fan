@@ -349,14 +349,14 @@ const AnimeProfilePage = (initialData: any) => {
             // Local state'i güncelle
             setUserData(prev => ({
                 ...prev,
-                name: updatedData.user_name,
-                surname: updatedData.user_surname,
-                username: updatedData.user_nick_name,
+                user_name: updatedData.user_name,
+                user_surname: updatedData.user_surname,
+                user_nick_name: updatedData.user_nick_name,
                 bio: updatedData.bio,
                 location: updatedData.location,
-                birthDate: updatedData.birth_date,
+                birth_date: updatedData.birth_date,
                 hobbies: updatedData.hobbies,
-                avatar: updatedData.profile_image
+                profile_image: updatedData.profile_image
             }));
 
             toast.success('Profil başarıyla güncellendi!');

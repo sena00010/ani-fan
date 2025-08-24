@@ -65,7 +65,6 @@ const AnimeHeader = () => {
     return () => unsubscribe();
   }, []);
 
-  console.log(user,"useruser")
   const menuItems = [
     {
       name: "Ana Sayfa",

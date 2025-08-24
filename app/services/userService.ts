@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8003';
+const API_BASE_URL = 'http://localhost:8083';
 const userService = {
     registerUser: async (userData:any) => {
         try {
@@ -32,7 +32,7 @@ const userService = {
         try {
             console.log('Profil güncelleme isteği:', profileData);
 
-            const response = await fetch(`${API_BASE_URL}/updateUserProfile?userId=${encodeURIComponent(userId)}`, {
+            const response = await fetch(`${API_BASE_URL}/updateUserProfile?userId=${userId}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
