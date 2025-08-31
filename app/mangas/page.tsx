@@ -1,11 +1,61 @@
 import {preloadGetMangasList} from "@/lib/server/preloadData";
 import MangaPageClient from "@/mangas/mangaClientPage";
+import {CommonCardData} from "@/lib/mangaAnimeInterface";
 
+// Manga tipini tanımla (Go modelindeki yapıya göre)
+interface Manga {
+    id: number;
+    title: string;
+    title_english?: string | null;
+    title_japanese?: string | null;
+    synopsis?: string | null; // Manga'da synopsis var
+    image_url?: string | null;
+    score?: number | null; // Manga'da score var
+    status: string;
+    genres?: string | null;
+    chapters?: number | null;
+    volumes?: number | null;
+    published_from?: string | null;
+    published_to?: string | null;
+}
 
 export default async function MangasPage() {
-    const mangaList = await preloadGetMangasList();
-    console.log(mangaList,"mangaList")
-    if (!mangaList) {
+    const mangaData = await preloadGetMangasList();
+    const mangaArray = mangaData?.Mangas || mangaData || [];
+
+    console.log(mangaData,"mangaData")
+    // MANGA için transformer (anime değil!)
+    const transformMangaToCommonCard = (manga: Manga): CommonCardData => {
+        return {
+            id: manga.id,
+            title: manga.title,
+            titleEnglish: manga.title_english,
+            titleJapanese: manga.title_japanese,
+            description: manga.synopsis, // synopsis -> description'a mapping
+            imageUrl: manga.image_url,
+            score: manga.score, // direkt score
+            status: manga.status,
+            genres: manga.genres,
+
+            // Manga özel alanları
+            chapters: manga.chapters,
+            volumes: manga.volumes,
+            publishedFrom: manga.published_from,
+            publishedTo: manga.published_to,
+
+            // Anime alanları boş (manga'da yok)
+            episodeCount: null,
+            studio: null,
+            releaseDate: null,
+            endDate: null,
+
+            type: 'manga' // TİP MANGA!
+        };
+    };
+
+    console.log(mangaData, "mangaList"); // İsim tutarlı
+
+    if (!mangaData || mangaData.length === 0) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
                 <div className="text-center bg-white p-8 rounded-xl shadow-lg">
@@ -22,9 +72,11 @@ export default async function MangasPage() {
         );
     }
 
+    const transformedMangaData: CommonCardData[] = mangaArray.map(transformMangaToCommonCard);
+
     return (
         <MangaPageClient
-            initialData={mangaList}
+            initialData={transformedMangaData} // Transform edilmiş veri gönder
         />
     );
 }

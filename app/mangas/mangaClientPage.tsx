@@ -1,29 +1,10 @@
 "use client";
 import { useState } from 'react';
+import MangaAnimeCard from '@/components/MangaAnimeCard';
+import { CommonCardData } from '@/lib/mangaAnimeInterface';
 
-interface Manga {
-    id: number;
-    title: string;
-    title_english: string;
-    title_japanese: string;
-    synopsis: string;
-    genres: string;
-    chapters: number;
-    volumes: number;
-    status: string;
-    published_from: string;
-    published_to: string | null;
-    score: number;
-    image_url: string;
-    mal_id: number;
-    created_at: string;
-    updated_at: string;
-}
-
-interface MangaPageClientProps {
-    initialData: {
-        Mangas: Manga[];
-    };
+export interface MangaPageClientProps {
+    initialData: CommonCardData[]; // Artık CommonCardData[] alıyor
 }
 
 const MangaPageClient: React.FC<MangaPageClientProps> = ({ initialData }) => {
@@ -32,13 +13,13 @@ const MangaPageClient: React.FC<MangaPageClientProps> = ({ initialData }) => {
     const [selectedStatus, setSelectedStatus] = useState('All');
     const [sortBy, setSortBy] = useState('score');
 
-    const mangaArray = initialData?.Mangas || [];
+    const mangaArray = initialData || [];
 
     // Get unique genres
     const allGenres = Array.from(new Set(
-        mangaArray.flatMap(manga =>
-            manga.genres.split(', ').map(genre => genre.trim())
-        )
+        mangaArray
+            .filter(manga => manga.genres)
+            .flatMap(manga => manga.genres!.split(', ').map(genre => genre.trim()))
     )).sort();
 
     // Get unique statuses
@@ -50,8 +31,8 @@ const MangaPageClient: React.FC<MangaPageClientProps> = ({ initialData }) => {
     const filteredAndSortedManga = mangaArray
         .filter(manga => {
             const matchesSearch = manga.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                manga.title_english.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesGenre = selectedGenre === 'All' || manga.genres.includes(selectedGenre);
+                (manga.titleEnglish && manga.titleEnglish.toLowerCase().includes(searchTerm.toLowerCase()));
+            const matchesGenre = selectedGenre === 'All' || (manga.genres && manga.genres.includes(selectedGenre));
             const matchesStatus = selectedStatus === 'All' || manga.status === selectedStatus;
 
             return matchesSearch && matchesGenre && matchesStatus;
@@ -59,36 +40,25 @@ const MangaPageClient: React.FC<MangaPageClientProps> = ({ initialData }) => {
         .sort((a, b) => {
             switch (sortBy) {
                 case 'score':
-                    return b.score - a.score;
+                    return (b.score || 0) - (a.score || 0);
                 case 'title':
                     return a.title.localeCompare(b.title);
                 case 'chapters':
-                    return b.chapters - a.chapters;
+                    return (b.chapters || 0) - (a.chapters || 0);
                 case 'year':
-                    return new Date(b.published_from).getFullYear() - new Date(a.published_from).getFullYear();
+                    if (!a.publishedFrom && !b.publishedFrom) return 0;
+                    if (!a.publishedFrom) return 1;
+                    if (!b.publishedFrom) return -1;
+                    return new Date(b.publishedFrom).getFullYear() - new Date(a.publishedFrom).getFullYear();
                 default:
                     return 0;
             }
         });
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'Publishing':
-                return 'bg-green-100 text-green-800 border-green-200';
-            case 'Finished':
-                return 'bg-blue-100 text-blue-800 border-blue-200';
-            case 'Hiatus':
-                return 'bg-orange-100 text-orange-800 border-orange-200';
-            default:
-                return 'bg-gray-100 text-gray-800 border-gray-200';
-        }
-    };
-
-    const getScoreColor = (score: number) => {
-        if (score >= 9.0) return 'text-green-600 font-bold';
-        if (score >= 8.0) return 'text-blue-600 font-semibold';
-        if (score >= 7.0) return 'text-yellow-600 font-medium';
-        return 'text-gray-600';
+    const handleMangaClick = (manga: CommonCardData) => {
+        console.log('Manga clicked:', manga);
+        // Burada manga detay sayfasına yönlendirme yapabilirsin
+        // router.push(`/manga/${manga.id}`);
     };
 
     if (!mangaArray.length) {
@@ -166,81 +136,13 @@ const MangaPageClient: React.FC<MangaPageClientProps> = ({ initialData }) => {
                     </p>
                 </div>
 
-                {/* Grid Layout */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-                    {filteredAndSortedManga.map((manga) => (
-                        <div
-                            key={manga.id}
-                            className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group cursor-pointer"
-                        >
-                            {/* Image */}
-                            <div className="relative overflow-hidden">
-                                <img
-                                    src={manga.image_url}
-                                    alt={manga.title}
-                                    className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-                                    loading="lazy"
-                                />
-                                <div className="absolute top-2 right-2">
-                                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getScoreColor(manga.score)} bg-white/90 backdrop-blur-sm`}>
-                                        ★ {manga.score}
-                                    </span>
-                                </div>
-                                <div className="absolute top-2 left-2">
-                                    <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(manga.status)}`}>
-                                        {manga.status}
-                                    </span>
-                                </div>
-                            </div>
-
-                            {/* Content */}
-                            <div className="p-4">
-                                <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                                    {manga.title}
-                                </h3>
-
-                                <div className="text-sm text-gray-500 mb-2">
-                                    {manga.title_japanese}
-                                </div>
-
-                                <p className="text-sm text-gray-600 mb-3 line-clamp-3">
-                                    {manga.synopsis}
-                                </p>
-
-                                <div className="space-y-2 text-xs text-gray-500">
-                                    <div className="flex justify-between">
-                                        <span>Chapters: {manga.chapters}</span>
-                                        <span>Volumes: {manga.volumes}</span>
-                                    </div>
-
-                                    <div className="text-xs">
-                                        Year: {new Date(manga.published_from).getFullYear()}
-                                        {manga.published_to && ` - ${new Date(manga.published_to).getFullYear()}`}
-                                    </div>
-                                </div>
-
-                                <div className="mt-3 flex flex-wrap gap-1">
-                                    {manga.genres.split(', ').slice(0, 3).map((genre, index) => (
-                                        <span
-                                            key={index}
-                                            className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs"
-                                        >
-                                            {genre}
-                                        </span>
-                                    ))}
-                                    {manga.genres.split(', ').length > 3 && (
-                                        <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">
-                                            +{manga.genres.split(', ').length - 3}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Empty State */}
-                {filteredAndSortedManga.length === 0 && (
+                {/* Ortak Component Kullanımı */}
+                {filteredAndSortedManga.length > 0 ? (
+                    <MangaAnimeCard
+                        data={filteredAndSortedManga}
+                        onCardClick={handleMangaClick}
+                    />
+                ) : (
                     <div className="text-center py-12">
                         <div className="text-6xl mb-4">🔍</div>
                         <h3 className="text-xl font-semibold text-gray-800 mb-2">No manga found</h3>

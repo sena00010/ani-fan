@@ -57,3 +57,20 @@ export async function preloadGetMangasList() {
     return null;
   }
 }
+export async function preloadGetAnimesList() {
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8083';
+
+  try {
+    const response = await axios.get(`${API_BASE_URL}/getAnimes`);
+    console.log(response, "animes");
+
+    if (response.data) {
+      return response.data; // ✅ Sadece data kısmını döndür
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Manga listesi getirilirken hata oluştu:', error);
+    return null;
+  }
+}
