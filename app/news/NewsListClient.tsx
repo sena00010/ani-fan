@@ -41,8 +41,8 @@ export default function NewsListClient({ initialNews }: { initialNews: NewsItem[
         return colors[source] || 'bg-purple-600';
     };
 
-    const handleNewsClick = (hashKey: string) => {
-        router.push(`/news/${hashKey}`);
+    const handleNewsClick = (id: number) => {
+        router.push(`/news/${id}`);
     };
 
     return (
@@ -72,7 +72,7 @@ export default function NewsListClient({ initialNews }: { initialNews: NewsItem[
                         <article
                             key={item.id}
                             className="bg-white/5 backdrop-blur-sm rounded-xl overflow-hidden border border-purple-500/20 hover:border-purple-400/40 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/20 cursor-pointer group"
-                            onClick={() => handleNewsClick(item.hash_key)}
+                            onClick={() => handleNewsClick(item?.id)}
                         >
                             {/* Görsel alanı */}
                             <div className="relative h-48 overflow-hidden bg-gradient-to-br from-purple-900/20 to-blue-900/20">

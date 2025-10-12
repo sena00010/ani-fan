@@ -37,8 +37,14 @@ export async function preloadNewsDetail(newsId: string) {
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8083';
 
   try {
-    const response = await axios.get(`${API_BASE_URL}/news/${newsId}`);
-    console.log(response, "newsDetail");
+    // ✅ URL'yi konsola yazdır
+    const url = `${API_BASE_URL}/news/fetch-detail?news_id=${newsId}`;
+    console.log('Fetching URL:', url);
+    console.log('News ID:', newsId);
+
+    const response = await axios.get(url);
+    console.log('Response status:', response.status);
+    console.log('Response data:', response.data);
 
     if (response.data) {
       return response.data;
@@ -46,7 +52,15 @@ export async function preloadNewsDetail(newsId: string) {
 
     return null;
   } catch (error) {
-    console.error('News detayı getirilirken hata oluştu:', error);
+    if (axios.isAxiosError(error)) {
+      console.error('Axios Error:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+    } else {
+      console.error('News detayı getirilirken hata oluştu:', error);
+    }
     return null;
   }
 }
