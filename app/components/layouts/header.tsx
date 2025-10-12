@@ -26,6 +26,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import {auth, db} from "@/lib/firebase";
 import {doc, getDoc} from "firebase/firestore";
 import { signOut } from "firebase/auth";
+import {useRouter} from "next/navigation";
 
 const AnimeHeader = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -35,7 +36,7 @@ const AnimeHeader = () => {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const userDropdownRef = useRef<HTMLDivElement>(null);
   console.log("header yüklendi")
-  // İki ayrı state: biri authentication durumu, diğeri modal kontrolü
+  const router=useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   useEffect(() => {
@@ -134,6 +135,8 @@ const AnimeHeader = () => {
       setUser(null);
       setIsUserDropdownOpen(false);
       console.log("Çıkış başarılı.");
+      router.push("/")
+
     } catch (error) {
       console.error("Çıkış hatası:", error);
     }

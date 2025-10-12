@@ -1,8 +1,9 @@
-import { preloadTopProducts } from "@/lib/server/preloadData";
-import NewsClient from "@/news/components/NewsClient";
+import React from 'react';
+import NewsListClient from './NewsListClient';
+import { preloadNewsList } from '@/lib/server/preloadData';
 
 export default async function NewsPage() {
-    const topProducts = await preloadTopProducts(8);
+    const newsData = await preloadNewsList();
 
-    return <NewsClient initialTopNews={topProducts} />;
+    return <NewsListClient initialNews={newsData || []} />;
 }

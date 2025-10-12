@@ -15,7 +15,41 @@ export function getServerUser() {
 
 // lib/server/preloadData.ts
 import axios from "axios";
+export async function preloadNewsList() {
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8083';
 
+  try {
+    const response = await axios.get(`${API_BASE_URL}/news`);
+    console.log(response, "news");
+
+    if (response.data) {
+      return response.data;
+    }
+
+    return null;
+  } catch (error) {
+    console.error('News listesi getirilirken hata oluştu:', error);
+    return null;
+  }
+}
+
+export async function preloadNewsDetail(newsId: string) {
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8083';
+
+  try {
+    const response = await axios.get(`${API_BASE_URL}/news/${newsId}`);
+    console.log(response, "newsDetail");
+
+    if (response.data) {
+      return response.data;
+    }
+
+    return null;
+  } catch (error) {
+    console.error('News detayı getirilirken hata oluştu:', error);
+    return null;
+  }
+}
 export async function preloadUserProfileInformation(userId: string | null) {
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8083';
 
