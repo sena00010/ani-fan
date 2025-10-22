@@ -6,6 +6,7 @@ import generateMeta from "@/lib/seo/metadataUtils";
 import Header from "./components/layouts/header";
 import Footer from "./components/layouts/footer";
 import { Toaster } from "react-hot-toast";
+import { ThemeProvider } from "./contexts/ThemeContext";
 
 export async function generateMetadata(): Promise<Metadata> {
   // const seoSettings = await preloadSeoSettings("home", "");
@@ -22,10 +23,12 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body>
+        <ThemeProvider>
           <Header />
           <Toaster position="top-right" />
           {children}
           {/*<Footer settings={settings} />*/}
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -19,7 +19,9 @@ import {
   Palette,
   Wand2,
   Crown,
-  Zap
+  Zap,
+  Moon,
+  Sun
 } from 'lucide-react';
 import AuthModal from "@/components/modals/AuthModal";
 import { onAuthStateChanged } from "firebase/auth";
@@ -27,18 +29,22 @@ import {auth, db} from "@/lib/firebase";
 import {doc, getDoc} from "firebase/firestore";
 import { signOut } from "firebase/auth";
 import {useRouter} from "next/navigation";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const AnimeHeader = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [user, setUser] = useState<any | null>(null);
+  const [showThemeSelector, setShowThemeSelector] = useState(false);
 
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const userDropdownRef = useRef<HTMLDivElement>(null);
+  const themeDropdownRef = useRef<HTMLDivElement>(null);
   console.log("header yüklendi")
   const router=useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const { theme, setTheme, colors } = useTheme();
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
@@ -147,6 +153,9 @@ const AnimeHeader = () => {
     function handleClickOutside(event: MouseEvent) {
       if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) {
         setIsUserDropdownOpen(false);
+      }
+      if (themeDropdownRef.current && !themeDropdownRef.current.contains(event.target as Node)) {
+        setShowThemeSelector(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -321,6 +330,60 @@ const AnimeHeader = () => {
 
             {/* User Actions */}
             <div className="flex items-center space-x-3">
+              {/* Theme Selector */}
+              <div className="relative" ref={themeDropdownRef}>
+                <button
+                  onClick={() => setShowThemeSelector(!showThemeSelector)}
+                  className="p-2 rounded-lg hover:bg-white/10 text-white/90 hover:text-white transition-colors"
+                >
+                  {theme === 'purple' && <Palette className="w-5 h-5" />}
+                  {theme === 'dark' && <Moon className="w-5 h-5" />}
+                  {theme === 'light' && <Sun className="w-5 h-5" />}
+                </button>
+                
+                <AnimatePresence>
+                  {showThemeSelector && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute right-0 mt-2 w-48 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 overflow-hidden z-[9999]"
+                    >
+                      <div className="py-2">
+                        <button
+                          onClick={() => { setTheme('purple'); setShowThemeSelector(false); }}
+                          className={`w-full px-4 py-3 text-left transition-all flex items-center gap-3 ${
+                            theme === 'purple' ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'text-gray-700 hover:bg-purple-50'
+                          }`}
+                        >
+                          <Palette className="w-4 h-4" />
+                          <span>Morumsu/Uzay</span>
+                        </button>
+                        <button
+                          onClick={() => { setTheme('dark'); setShowThemeSelector(false); }}
+                          className={`w-full px-4 py-3 text-left transition-all flex items-center gap-3 ${
+                            theme === 'dark' ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white' : 'text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          <Moon className="w-4 h-4" />
+                          <span>Dark Mode</span>
+                        </button>
+                        <button
+                          onClick={() => { setTheme('light'); setShowThemeSelector(false); }}
+                          className={`w-full px-4 py-3 text-left transition-all flex items-center gap-3 ${
+                            theme === 'light' ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-white' : 'text-gray-700 hover:bg-amber-50'
+                          }`}
+                        >
+                          <Sun className="w-4 h-4" />
+                          <span>Light Mode</span>
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
               {/* Notification - sadece authenticated kullanıcılar için */}
               {isAuthenticated && (
                   <button className="p-2 rounded-lg hover:bg-white/10 text-white/90 hover:text-white transition-colors relative">

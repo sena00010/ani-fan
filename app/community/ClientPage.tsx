@@ -1,7 +1,8 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Heart, MessageCircle, Share2, Bookmark, Star, Sparkles, Zap, Users, TrendingUp, Camera, Image, Video, Music, Hash, Smile, ChevronUp } from 'lucide-react';
+import { useTheme } from '@/contexts/ThemeContext';
+import { Heart, MessageCircle, Share2, Bookmark, Star, Sparkles, Zap, Users, TrendingUp, Camera, Image, Video, Music, Hash, Smile, ChevronUp, Palette, Moon, Sun } from 'lucide-react';
 
 // Comment interface
 interface Comment {
@@ -238,8 +239,75 @@ const samplePosts: AnimePost[] = [
   }
 ];
 
+// Popular Anime/Manga Interface
+interface PopularItem {
+  id: string;
+  title: string;
+  image: string;
+  type: 'anime' | 'manga';
+  score: number;
+  views: number;
+  genres: string[];
+  status: string;
+}
+
+// Sample Popular Data
+const popularAnime: PopularItem[] = [
+  {
+    id: '1',
+    title: 'One Piece',
+    image: 'https://images.unsplash.com/photo-1613376023733-0a73315d9b06?w=150&h=200&fit=crop',
+    type: 'anime',
+    score: 9.2,
+    views: 2500000,
+    genres: ['Action', 'Adventure'],
+    status: 'Ongoing'
+  },
+  {
+    id: '2',
+    title: 'Attack on Titan',
+    image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=150&h=200&fit=crop',
+    type: 'anime',
+    score: 9.0,
+    views: 2000000,
+    genres: ['Action', 'Drama'],
+    status: 'Completed'
+  },
+  {
+    id: '3',
+    title: 'Demon Slayer',
+    image: 'https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=150&h=200&fit=crop',
+    type: 'anime',
+    score: 8.8,
+    views: 1800000,
+    genres: ['Action', 'Supernatural'],
+    status: 'Completed'
+  },
+  {
+    id: '4',
+    title: 'Jujutsu Kaisen',
+    image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&h=200&fit=crop',
+    type: 'anime',
+    score: 8.9,
+    views: 1600000,
+    genres: ['Action', 'Supernatural'],
+    status: 'Ongoing'
+  },
+  {
+    id: '5',
+    title: 'My Hero Academia',
+    image: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=150&h=200&fit=crop',
+    type: 'anime',
+    score: 8.7,
+    views: 1400000,
+    genres: ['Action', 'School'],
+    status: 'Ongoing'
+  }
+];
+
 const CommunityPage: React.FC = () => {
   const { user } = useAuth();
+  const { theme, setTheme, colors } = useTheme();
   const [posts, setPosts] = useState<AnimePost[]>(samplePosts);
   const [newPost, setNewPost] = useState('');
   const [selectedAnimeTags, setSelectedAnimeTags] = useState<string[]>([]);
@@ -536,19 +604,67 @@ const CommunityPage: React.FC = () => {
     }
   });
 
+  const getThemeBackground = () => {
+    switch (theme) {
+      case 'purple':
+        return 'min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900';
+      case 'dark':
+        return 'min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900';
+      case 'light':
+        return 'min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50';
+      default:
+        return 'min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900';
+    }
+  };
+
+  const getThemeElements = () => {
+    switch (theme) {
+      case 'purple':
+        return (
+          <>
+            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-600/10 via-purple-600/10 to-pink-600/10" />
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full blur-3xl animate-pulse-slow" />
+            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-r from-pink-500/20 to-indigo-500/20 rounded-full blur-3xl animate-pulse-slow" />
+            <div className="absolute top-20 left-10 text-6xl opacity-20 animate-float">🌸</div>
+            <div className="absolute top-40 right-20 text-4xl opacity-30 animate-float-reverse">⭐</div>
+            <div className="absolute bottom-40 left-20 text-5xl opacity-25 animate-float">🎌</div>
+            <div className="absolute bottom-20 right-10 text-3xl opacity-35 animate-float-reverse">✨</div>
+          </>
+        );
+      case 'dark':
+        return (
+          <>
+            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-gray-800/10 via-gray-700/10 to-gray-800/10" />
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-gray-600/20 to-gray-700/20 rounded-full blur-3xl animate-pulse-slow" />
+            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-r from-gray-500/20 to-gray-600/20 rounded-full blur-3xl animate-pulse-slow" />
+            <div className="absolute top-20 left-10 text-6xl opacity-20 animate-float">🌙</div>
+            <div className="absolute top-40 right-20 text-4xl opacity-30 animate-float-reverse">⭐</div>
+            <div className="absolute bottom-40 left-20 text-5xl opacity-25 animate-float">🌑</div>
+            <div className="absolute bottom-20 right-10 text-3xl opacity-35 animate-float-reverse">✨</div>
+          </>
+        );
+      case 'light':
+        return (
+          <>
+            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-amber-100/20 via-yellow-100/15 to-amber-150/20" />
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-amber-300/25 to-yellow-300/25 rounded-full blur-3xl animate-pulse-slow" />
+            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-r from-yellow-400/25 to-amber-400/25 rounded-full blur-3xl animate-pulse-slow" />
+            <div className="absolute top-20 left-10 text-6xl opacity-20 animate-float">☀️</div>
+            <div className="absolute top-40 right-20 text-4xl opacity-25 animate-float-reverse">🌟</div>
+            <div className="absolute bottom-40 left-20 text-5xl opacity-22 animate-float">🌤️</div>
+            <div className="absolute bottom-20 right-10 text-3xl opacity-30 animate-float-reverse">✨</div>
+          </>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
+    <div className={`${getThemeBackground()} relative overflow-hidden`}>
       {/* Animated Background */}
       <div className="absolute inset-0">
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-600/10 via-purple-600/10 to-pink-600/10" />
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full blur-3xl animate-pulse-slow" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-r from-pink-500/20 to-indigo-500/20 rounded-full blur-3xl animate-pulse-slow" />
-        
-        {/* Floating anime elements */}
-        <div className="absolute top-20 left-10 text-6xl opacity-20 animate-float">🌸</div>
-        <div className="absolute top-40 right-20 text-4xl opacity-30 animate-float-reverse">⭐</div>
-        <div className="absolute bottom-40 left-20 text-5xl opacity-25 animate-float">🎌</div>
-        <div className="absolute bottom-20 right-10 text-3xl opacity-35 animate-float-reverse">✨</div>
+        {getThemeElements()}
       </div>
 
       <div className="relative z-10">
@@ -572,6 +688,7 @@ const CommunityPage: React.FC = () => {
             ))}
           </div>
           
+
           {/* Banner Content Overlay */}
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center text-white">
@@ -614,12 +731,20 @@ const CommunityPage: React.FC = () => {
           </div>
 
           {/* Featured Anime Title */}
-          <div className="absolute top-8 right-8 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
+          <div className={`absolute top-8 right-8 backdrop-blur-md rounded-2xl p-4 border ${
+            theme === 'light'
+              ? 'bg-white/95 border-gray-300/80 shadow-lg'
+              : 'bg-white/10 border-white/20'
+          }`}>
             <div className="text-center">
-              <div className="text-white font-bold text-lg mb-1">
+              <div className={`font-bold text-lg mb-1 ${
+                theme === 'light' ? 'text-gray-900' : 'text-white'
+              }`}>
                 {bannerImages[currentBannerIndex].title}
               </div>
-              <div className="text-gray-300 text-sm">
+              <div className={`text-sm ${
+                theme === 'light' ? 'text-gray-600' : 'text-gray-300'
+              }`}>
                 Şu an popüler
               </div>
             </div>
@@ -627,12 +752,42 @@ const CommunityPage: React.FC = () => {
         </div>
 
         <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col lg:flex-row gap-8">
+          {/* Mobile Categories */}
+          <div className="lg:hidden mb-6">
+            <div className={`${colors.surface} backdrop-blur-md rounded-3xl p-4 border ${colors.border}`}>
+              <div className="flex gap-2 overflow-x-auto">
+                {[
+                  { id: 'all', label: 'All', icon: Hash },
+                  { id: 'anime', label: 'Anime', icon: Video },
+                  { id: 'manga', label: 'Manga', icon: Bookmark },
+                  { id: 'reviews', label: 'Reviews', icon: Star },
+                  { id: 'nakama', label: 'Nakama', icon: Users }
+                ].map(({ id, label, icon: Icon }) => (
+                  <button
+                    key={id}
+                    onClick={() => setActiveTab(id as any)}
+                    className={`flex-shrink-0 px-4 py-2 rounded-xl transition-all duration-300 flex items-center gap-2 ${
+                      activeTab === id
+                        ? theme === 'light' 
+                          ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-white shadow-lg'
+                          : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
+                        : `${colors.textSecondary} ${colors.hover}`
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span className="text-sm">{label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex gap-8">
           {/* Left Sidebar - Filters */}
-          <div className="w-full lg:w-80 flex-shrink-0">
-            <div className="bg-white/10 backdrop-blur-md rounded-3xl p-6 border border-white/20">
-              <h3 className="text-white font-bold text-xl mb-6">Kategoriler</h3>
-              <div className="grid grid-cols-2 lg:grid-cols-1 gap-3">
+          <div className="hidden lg:block w-80 flex-shrink-0">
+            <div className={`${colors.surface} backdrop-blur-md rounded-3xl p-6 border ${colors.border}`}>
+              <h3 className={`${colors.text} font-bold text-xl mb-6`}>Kategoriler</h3>
+              <div className="space-y-3">
                 {[
                   { id: 'all', label: 'All Posts', icon: Hash },
                   { id: 'anime', label: 'Anime', icon: Video },
@@ -645,24 +800,135 @@ const CommunityPage: React.FC = () => {
                     onClick={() => setActiveTab(id as any)}
                     className={`w-full px-4 py-3 rounded-xl transition-all duration-300 flex items-center gap-3 ${
                       activeTab === id
-                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
-                        : 'text-gray-300 hover:text-white hover:bg-white/10'
+                        ? theme === 'light' 
+                          ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-white shadow-lg'
+                          : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
+                        : `${colors.textSecondary} ${colors.hover}`
                     }`}
                   >
                     <Icon className="w-5 h-5" />
-                    <span className="hidden sm:inline">{label}</span>
-                    <span className="sm:hidden">{label.split(' ')[0]}</span>
+                    <span>{label}</span>
                   </button>
                 ))}
+              </div>
+            </div>
+
+            {/* Popular Section - Right below Categories */}
+            <div className={`${colors.surface} backdrop-blur-md rounded-3xl p-6 border ${colors.border} shadow-xl mt-6`}>
+              <h3 className={`${colors.text} font-bold text-xl mb-6`}>Popüler Bu Hafta</h3>
+              
+              {/* Popular Anime List */}
+              <div className="space-y-4">
+                {popularAnime.map((item, index) => (
+                  <div key={item.id} className={`flex items-center gap-4 p-3 rounded-2xl transition-all cursor-pointer group ${
+                    theme === 'light'
+                      ? 'hover:bg-amber-50/60'
+                      : 'hover:bg-white/10'
+                  }`}>
+                    <div className="relative">
+                      <img 
+                        src={item.image} 
+                        alt={item.title}
+                        className="w-16 h-20 object-cover rounded-xl shadow-lg group-hover:scale-105 transition-transform"
+                      />
+                      <div className={`absolute -top-2 -right-2 text-white text-xs font-bold px-2 py-1 rounded-full ${
+                        theme === 'light'
+                          ? 'bg-gradient-to-r from-amber-500 to-yellow-500'
+                          : 'bg-gradient-to-r from-purple-500 to-pink-500'
+                      }`}>
+                        #{index + 1}
+                      </div>
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <h4 className={`${colors.text} font-semibold text-sm mb-1 truncate`}>
+                        {item.title}
+                      </h4>
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="flex items-center">
+                          {[...Array(5)].map((_, i) => (
+                            <Star 
+                              key={i} 
+                              className={`w-3 h-3 ${
+                                i < Math.floor(item.score) ? 'text-yellow-400 fill-current' : 'text-gray-400'
+                              }`} 
+                            />
+                          ))}
+                        </div>
+                        <span className={`${colors.textSecondary} text-xs`}>
+                          {item.score}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-1 mb-2">
+                        {item.genres.slice(0, 2).map((genre) => (
+                          <span 
+                            key={genre}
+                            className={`px-2 py-1 text-xs rounded-full border ${
+                              theme === 'light'
+                                ? 'bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-600 border-amber-400/30'
+                                : 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-300 border-purple-400/30'
+                            }`}
+                          >
+                            {genre}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className={`${colors.textSecondary} text-xs`}>
+                          {item.views.toLocaleString()} görüntüleme
+                        </span>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          item.status === 'Ongoing' 
+                            ? 'bg-green-500/20 text-green-300 border border-green-400/30'
+                            : 'bg-blue-500/20 text-blue-300 border border-blue-400/30'
+                        }`}>
+                          {item.status}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* See More Button */}
+              <button className={`w-full mt-6 py-3 rounded-2xl ${
+                theme === 'light' 
+                  ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-white font-semibold hover:from-amber-600 hover:to-yellow-600'
+                  : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold hover:from-purple-600 hover:to-pink-600'
+              } transition-all duration-300 shadow-lg hover:shadow-xl`}>
+                Daha Fazla Gör
+              </button>
+
+              {/* Trending Tags */}
+              <div className="mt-8">
+                <h4 className={`${colors.text} font-semibold text-lg mb-4`}>Trend Etiketler</h4>
+                <div className="flex flex-wrap gap-2">
+                  {['#OnePiece', '#AttackOnTitan', '#DemonSlayer', '#JujutsuKaisen', '#MyHeroAcademia', '#Naruto'].map((tag) => (
+                    <span 
+                      key={tag}
+                      className={`px-3 py-1 text-sm rounded-full border transition-all cursor-pointer ${
+                        theme === 'light'
+                          ? 'bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-600 border-amber-400/30 hover:from-amber-500/30 hover:to-yellow-500/30'
+                          : 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-300 border-purple-400/30 hover:from-purple-500/30 hover:to-pink-500/30'
+                      }`}
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
 
           {/* Main Content */}
-          <div className="flex-1 max-w-4xl">
+          <div className="flex-1 w-full lg:max-w-4xl">
           {/* Create Post Section */}
           {user && (
-            <div className="bg-white/10 backdrop-blur-md rounded-3xl p-6 mb-8 border border-white/20">
+            <div className={`backdrop-blur-md rounded-3xl p-6 mb-8 border ${
+              theme === 'light'
+                ? 'bg-white/95 border-gray-300/80 shadow-lg'
+                : 'bg-white/10 border-white/20'
+            }`}>
               <div className="flex items-center gap-4 mb-4">
                 <img
                   src={user.photoURL || 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face'}
@@ -670,8 +936,8 @@ const CommunityPage: React.FC = () => {
                   className="w-12 h-12 rounded-full border-2 border-purple-400"
                 />
                 <div>
-                  <div className="text-white font-semibold">{user.displayName || 'Anonymous'}</div>
-                  <div className="text-gray-400 text-sm">Share your anime thoughts!</div>
+                  <div className={`font-semibold ${colors.text}`}>{user.displayName || 'Anonymous'}</div>
+                  <div className={`text-sm ${colors.textSecondary}`}>Share your anime thoughts!</div>
                 </div>
               </div>
               
@@ -680,7 +946,11 @@ const CommunityPage: React.FC = () => {
                 value={newPost}
                 onChange={(e) => setNewPost(e.target.value)}
                 placeholder="What's on your mind about anime? Share your thoughts, reviews, or recommendations! ✨"
-                className="w-full bg-white/5 border border-white/20 rounded-2xl p-4 text-white placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className={`w-full rounded-2xl p-4 resize-none focus:outline-none focus:ring-2 focus:border-transparent ${
+                  theme === 'light'
+                    ? 'bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-amber-500'
+                    : 'bg-white/5 border border-white/20 text-white placeholder-gray-400 focus:ring-purple-500'
+                }`}
                 rows={3}
               />
               
@@ -688,7 +958,7 @@ const CommunityPage: React.FC = () => {
               {showCreatePost && (
                 <div className="mt-4 space-y-4">
                   <div>
-                    <label className="text-white font-semibold mb-2 block">Anime Tags</label>
+                    <label className={`font-semibold mb-2 block ${colors.text}`}>Anime Tags</label>
                     <div className="flex flex-wrap gap-2">
                       {popularAnimeTags.slice(0, 8).map(tag => (
                         <button
@@ -697,7 +967,9 @@ const CommunityPage: React.FC = () => {
                           className={`px-3 py-1 rounded-full text-sm transition-all ${
                             selectedAnimeTags.includes(tag)
                               ? 'bg-blue-500 text-white'
-                              : 'bg-white/10 text-gray-300 hover:bg-white/20'
+                              : theme === 'light'
+                                ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                : 'bg-white/10 text-gray-300 hover:bg-white/20'
                           }`}
                         >
                           {tag}
@@ -707,7 +979,7 @@ const CommunityPage: React.FC = () => {
                   </div>
                   
                   <div>
-                    <label className="text-white font-semibold mb-2 block">Manga Tags</label>
+                    <label className={`font-semibold mb-2 block ${colors.text}`}>Manga Tags</label>
                     <div className="flex flex-wrap gap-2">
                       {popularMangaTags.slice(0, 8).map(tag => (
                         <button
@@ -716,7 +988,9 @@ const CommunityPage: React.FC = () => {
                           className={`px-3 py-1 rounded-full text-sm transition-all ${
                             selectedMangaTags.includes(tag)
                               ? 'bg-green-500 text-white'
-                              : 'bg-white/10 text-gray-300 hover:bg-white/20'
+                              : theme === 'light'
+                                ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                : 'bg-white/10 text-gray-300 hover:bg-white/20'
                           }`}
                         >
                           {tag}
@@ -731,16 +1005,28 @@ const CommunityPage: React.FC = () => {
                 <div className="flex gap-4">
                   <button
                     onClick={() => setShowCreatePost(!showCreatePost)}
-                    className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-gray-300 hover:text-white transition-all"
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
+                      theme === 'light'
+                        ? 'bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900'
+                        : 'bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white'
+                    }`}
                   >
                     <Hash className="w-4 h-4" />
                     Add Tags
                   </button>
-                  <button className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-gray-300 hover:text-white transition-all">
+                  <button className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
+                    theme === 'light'
+                      ? 'bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900'
+                      : 'bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white'
+                  }`}>
                     <Image className="w-4 h-4" />
                     Image
                   </button>
-                  <button className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-gray-300 hover:text-white transition-all">
+                  <button className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
+                    theme === 'light'
+                      ? 'bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900'
+                      : 'bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white'
+                  }`}>
                     <Smile className="w-4 h-4" />
                     Emoji
                   </button>
@@ -749,7 +1035,11 @@ const CommunityPage: React.FC = () => {
                 <button
                   onClick={handleCreatePost}
                   disabled={!newPost.trim()}
-                  className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-semibold hover:from-purple-600 hover:to-pink-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className={`px-6 py-2 text-white rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                    theme === 'light'
+                      ? 'bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600'
+                      : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600'
+                  }`}
                 >
                   Post ✨
                 </button>
@@ -762,7 +1052,11 @@ const CommunityPage: React.FC = () => {
             {filteredPosts.map((post) => (
               <div
                 key={post.id}
-                className="bg-white/10 backdrop-blur-md rounded-3xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300"
+                className={`backdrop-blur-md rounded-3xl p-6 border transition-all duration-300 ${
+                  theme === 'light'
+                    ? 'bg-white/95 border-gray-300/80 hover:bg-white shadow-lg'
+                    : 'bg-white/10 border-white/20 hover:bg-white/15'
+                }`}
               >
                 {/* Post Header */}
                 <div className="flex items-center gap-4 mb-4">
@@ -778,11 +1072,11 @@ const CommunityPage: React.FC = () => {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <h3 className="text-white font-semibold">{post.author.name}</h3>
-                      <span className="text-gray-400 text-sm">•</span>
-                      <span className="text-gray-400 text-sm">{post.timestamp}</span>
+                      <h3 className={`font-semibold ${colors.text}`}>{post.author.name}</h3>
+                      <span className={`text-sm ${colors.textSecondary}`}>•</span>
+                      <span className={`text-sm ${colors.textSecondary}`}>{post.timestamp}</span>
                     </div>
-                    <div className="text-gray-400 text-sm">
+                    <div className={`text-sm ${colors.textSecondary}`}>
                       Favorite: {post.author.favoriteAnime}
                     </div>
                   </div>
@@ -800,7 +1094,7 @@ const CommunityPage: React.FC = () => {
 
                 {/* Post Content */}
                 <div className="mb-4">
-                  <p className="text-white text-lg leading-relaxed">{post.content}</p>
+                  <p className={`text-lg leading-relaxed ${colors.text}`}>{post.content}</p>
                   
                   {/* Auto Update Card */}
                   {post.type === 'auto-update' && post.autoUpdateData && (
@@ -810,8 +1104,8 @@ const CommunityPage: React.FC = () => {
                           <Zap className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                          <h4 className="text-white font-semibold text-lg">{post.autoUpdateData.title}</h4>
-                          <p className="text-gray-300 text-sm">{post.autoUpdateData.description}</p>
+                          <h4 className={`font-semibold text-lg ${colors.text}`}>{post.autoUpdateData.title}</h4>
+                          <p className={`text-sm ${colors.textSecondary}`}>{post.autoUpdateData.description}</p>
                         </div>
                       </div>
                       <a
@@ -834,8 +1128,8 @@ const CommunityPage: React.FC = () => {
                             <Users className="w-5 h-5 text-white" />
                           </div>
                           <div>
-                            <h4 className="text-white font-semibold text-lg">Nakama Sohbeti</h4>
-                            <p className="text-gray-300 text-sm">{post.nakamaMembers} aktif üye</p>
+                            <h4 className={`font-semibold text-lg ${colors.text}`}>Nakama Sohbeti</h4>
+                            <p className={`text-sm ${colors.textSecondary}`}>{post.nakamaMembers} aktif üye</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2 text-orange-300">
@@ -856,14 +1150,14 @@ const CommunityPage: React.FC = () => {
                           className="w-20 h-28 object-cover rounded-xl"
                         />
                         <div className="flex-1">
-                          <h4 className="text-white font-semibold text-lg">{post.animeRecommendation.title}</h4>
+                          <h4 className={`font-semibold text-lg ${colors.text}`}>{post.animeRecommendation.title}</h4>
                           <div className="flex items-center gap-2 mt-2">
                             <div className="flex items-center gap-1">
                               <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                              <span className="text-white font-semibold">{post.animeRecommendation.score}</span>
+                              <span className={`font-semibold ${colors.text}`}>{post.animeRecommendation.score}</span>
                             </div>
-                            <span className="text-gray-400">•</span>
-                            <span className="text-gray-300">{post.animeRecommendation.status}</span>
+                            <span className={colors.textSecondary}>•</span>
+                            <span className={colors.textSecondary}>{post.animeRecommendation.status}</span>
                           </div>
                         </div>
                       </div>
@@ -947,14 +1241,18 @@ const CommunityPage: React.FC = () => {
                             alt="Profile"
                             className="w-8 h-8 rounded-full border border-purple-400"
                           />
-                          <span className="text-white font-semibold">{user.displayName || 'Anonymous'}</span>
+                          <span className={`font-semibold ${colors.text}`}>{user.displayName || 'Anonymous'}</span>
                         </div>
                         <div className="flex gap-3">
                           <textarea
                             value={newComment[post.id] || ''}
                             onChange={(e) => setNewComment(prev => ({ ...prev, [post.id]: e.target.value }))}
                             placeholder="Yorumunuzu yazın..."
-                            className="flex-1 bg-white/5 border border-white/20 rounded-xl p-3 text-white placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            className={`flex-1 rounded-xl p-3 resize-none focus:outline-none focus:ring-2 ${
+                              theme === 'light'
+                                ? 'bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-amber-500'
+                                : 'bg-white/5 border border-white/20 text-white placeholder-gray-400 focus:ring-purple-500'
+                            }`}
                             rows={2}
                           />
                           <button
@@ -979,15 +1277,15 @@ const CommunityPage: React.FC = () => {
                               className="w-8 h-8 rounded-full border border-purple-400"
                             />
                             <div className="flex items-center gap-2">
-                              <span className="text-white font-semibold">{comment.author.name}</span>
+                              <span className={`font-semibold ${colors.text}`}>{comment.author.name}</span>
                               <span className="text-xs bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-2 py-1 rounded-full">
                                 Lv.{comment.author.level}
                               </span>
-                              <span className="text-gray-400 text-sm">•</span>
-                              <span className="text-gray-400 text-sm">{comment.timestamp}</span>
+                              <span className={`text-sm ${colors.textSecondary}`}>•</span>
+                              <span className={`text-sm ${colors.textSecondary}`}>{comment.timestamp}</span>
                             </div>
                           </div>
-                          <p className="text-white mb-3">{comment.content}</p>
+                          <p className={`mb-3 ${colors.text}`}>{comment.content}</p>
                           
                           {/* Comment Actions */}
                           <div className="flex items-center gap-4">
@@ -1081,12 +1379,17 @@ const CommunityPage: React.FC = () => {
 
             {/* Load More Button */}
             <div className="text-center mt-8">
-              <button className="px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl font-semibold hover:from-purple-600 hover:to-pink-600 transition-all">
+              <button className={`px-8 py-3 text-white rounded-2xl font-semibold transition-all ${
+                theme === 'light'
+                  ? 'bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600'
+                  : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600'
+              }`}>
                 Load More Posts ✨
               </button>
             </div>
           </div>
         </div>
+
         </div>
       </div>
 
@@ -1094,7 +1397,11 @@ const CommunityPage: React.FC = () => {
       {showScrollTop && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-8 right-8 w-14 h-14 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full shadow-lg hover:from-purple-600 hover:to-pink-600 transition-all duration-300 z-50 flex items-center justify-center group"
+          className={`fixed bottom-8 right-8 w-14 h-14 text-white rounded-full shadow-lg transition-all duration-300 z-50 flex items-center justify-center group ${
+            theme === 'light'
+              ? 'bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600'
+              : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600'
+          }`}
         >
           <ChevronUp className="w-6 h-6 group-hover:scale-110 transition-transform" />
         </button>
