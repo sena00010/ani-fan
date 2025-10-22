@@ -57,8 +57,9 @@ const AnimePageClient: React.FC<AnimePageClientProps> = ({ initialData }) => {
 
     const handleAnimeClick = (anime: CommonCardData) => {
         console.log('Anime clicked:', anime);
-        // Burada anime detay sayfasına yönlendirme yapabilirsin
-        // router.push(`/anime/${anime.id}`);
+        // Anime detay sayfasına yönlendirme
+        const animeSlug = anime.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+        window.location.href = `/animes/${animeSlug}`;
     };
 
     if (!animeArray.length) {

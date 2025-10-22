@@ -57,8 +57,9 @@ const MangaPageClient: React.FC<MangaPageClientProps> = ({ initialData }) => {
 
     const handleMangaClick = (manga: CommonCardData) => {
         console.log('Manga clicked:', manga);
-        // Burada manga detay sayfasına yönlendirme yapabilirsin
-        // router.push(`/manga/${manga.id}`);
+        // Manga detay sayfasına yönlendirme
+        const mangaSlug = manga.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+        window.location.href = `/mangas/${mangaSlug}`;
     };
 
     if (!mangaArray.length) {
