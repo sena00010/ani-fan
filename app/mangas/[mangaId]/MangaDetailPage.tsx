@@ -606,3 +606,4 @@ const MangaDetailPage: React.FC<MangaDetailPageProps> = ({ mangaId }) => {
 };
 
 export default MangaDetailPage;
+

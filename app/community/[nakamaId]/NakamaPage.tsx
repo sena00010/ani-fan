@@ -646,3 +646,4 @@ const NakamaPage: React.FC<NakamaPageProps> = ({ nakamaId }) => {
 };
 
 export default NakamaPage;
+

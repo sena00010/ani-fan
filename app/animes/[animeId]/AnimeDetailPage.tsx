@@ -619,3 +619,4 @@ const AnimeDetailPage: React.FC<AnimeDetailPageProps> = ({ animeId }) => {
 };
 
 export default AnimeDetailPage;
+

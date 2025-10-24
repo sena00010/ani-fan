@@ -9,3 +9,4 @@ interface PageProps {
 export default function Page({ params }: PageProps) {
   return <AnimeDetailPage animeId={params.animeId} />;
 }
+
