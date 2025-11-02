@@ -281,10 +281,52 @@ const CommunityPage: React.FC = () => {
           isNakama: p.communityId && p.communityId > 0,
         }));
         setPosts(prev => offset === 0 ? mapped : [...prev, ...mapped]);
-        // Seed liked set from server, if available
-        const likedSet = new Set<string>();
-        postsArr.forEach((p: any) => { if (p.isLiked) likedSet.add(String(p.id)); });
-        if (likedSet.size) setLikedPosts(likedSet);
+        
+        // Fetch like status for each post from /post/likes endpoint
+        if (user?.uid) {
+          const likedSet = new Set<string>();
+          const likeStatusPromises = uniquePosts.map(async (p: any) => {
+            try {
+              const postId = String(p.id);
+              const res = await fetch(`${API_BASE}/post/likes?postId=${postId}&userId=${encodeURIComponent(user.uid)}`);
+              if (!res.ok) return { postId, isLiked: false };
+              const data = await res.json();
+              return { postId, isLiked: data.isAuthUserInList === true };
+            } catch (error) {
+              console.error(`Error fetching like status for post ${p.id}:`, error);
+              return { postId: String(p.id), isLiked: false };
+            }
+          });
+          
+          const likeStatuses = await Promise.all(likeStatusPromises);
+          likeStatuses.forEach(({ postId, isLiked }) => {
+            if (isLiked) {
+              likedSet.add(postId);
+            }
+          });
+          
+          // Update likedPosts state
+          if (offset === 0) {
+            setLikedPosts(likedSet);
+          } else {
+            setLikedPosts(prev => {
+              const newSet = new Set(prev);
+              likeStatuses.forEach(({ postId, isLiked }) => {
+                if (isLiked) {
+                  newSet.add(postId);
+                } else {
+                  newSet.delete(postId);
+                }
+              });
+              return newSet;
+            });
+          }
+        } else {
+          // If no user, seed liked set from server response if available
+          const likedSet = new Set<string>();
+          postsArr.forEach((p: any) => { if (p.isLiked) likedSet.add(String(p.id)); });
+          if (likedSet.size) setLikedPosts(likedSet);
+        }
       } catch (_) {
       } finally {
         setIsLoading(false);
@@ -544,9 +586,14 @@ const CommunityPage: React.FC = () => {
   };
 
   const handleLike = async (postId: string) => {
+    if (!user?.uid) return;
+    
     const isLiked = likedPosts.has(postId);
-    // optimistic UI
-    setPosts(posts.map(post => post.id === postId ? {
+    // Store previous state for potential revert
+    const previousLikeCount = posts.find(p => p.id === postId)?.reactions.likes ?? 0;
+    
+    // optimistic UI update
+    setPosts(prevPosts => prevPosts.map(post => post.id === postId ? {
       ...post,
       reactions: { ...post.reactions, likes: isLiked ? post.reactions.likes - 1 : post.reactions.likes + 1 }
     } : post));
@@ -555,14 +602,74 @@ const CommunityPage: React.FC = () => {
       if (isLiked) ns.delete(postId); else ns.add(postId);
       return ns;
     });
+    
     try {
-      const endpoint = isLiked ? '/post/unlike' : '/post/like';
-      await fetch(`${API_BASE}${endpoint}`, {
+      // Use /post/like endpoint for both like and unlike operations
+      const response = await fetch(`${API_BASE}/post/like`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ postId: Number(postId) || postId, userId: Number(user?.uid) || user?.uid })
+        body: JSON.stringify({ 
+          postId: Number(postId), 
+          userId: String(user.uid) 
+        })
       });
-    } catch (_) {}
+      
+      if (!response.ok) {
+        // Revert optimistic update on error
+        setPosts(prevPosts => prevPosts.map(post => post.id === postId ? {
+          ...post,
+          reactions: { ...post.reactions, likes: previousLikeCount }
+        } : post));
+        setLikedPosts(prev => {
+          const ns = new Set(prev);
+          if (isLiked) ns.add(postId); else ns.delete(postId);
+          return ns;
+        });
+        return;
+      }
+      
+      // Fetch updated like status from /post/likes endpoint to sync with backend
+      try {
+        const likesResponse = await fetch(`${API_BASE}/post/likes?postId=${postId}&userId=${encodeURIComponent(user.uid)}`);
+        if (likesResponse.ok) {
+          const likesData = await likesResponse.json();
+          const isUserLiked = likesData.isAuthUserInList === true;
+          
+          // Update likedPosts state based on backend response
+          setLikedPosts(prev => {
+            const ns = new Set(prev);
+            if (isUserLiked) {
+              ns.add(postId);
+            } else {
+              ns.delete(postId);
+            }
+            return ns;
+          });
+          
+          // Update like count from backend if available
+          if (likesData.totalCount !== undefined) {
+            setPosts(prevPosts => prevPosts.map(post => post.id === postId ? {
+              ...post,
+              reactions: { ...post.reactions, likes: likesData.totalCount ?? post.reactions.likes }
+            } : post));
+          }
+        }
+      } catch (likesError) {
+        console.error('Like durumu güncellenirken hata:', likesError);
+      }
+    } catch (error) {
+      // Revert optimistic update on error
+      setPosts(prevPosts => prevPosts.map(post => post.id === postId ? {
+        ...post,
+        reactions: { ...post.reactions, likes: previousLikeCount }
+      } : post));
+      setLikedPosts(prev => {
+        const ns = new Set(prev);
+        if (isLiked) ns.add(postId); else ns.delete(postId);
+        return ns;
+      });
+      console.error('Like işlemi sırasında hata:', error);
+    }
   };
 
   const handleBookmark = (postId: string) => {
