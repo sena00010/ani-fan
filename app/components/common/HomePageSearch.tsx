@@ -12,8 +12,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import AnimatedBackground from "./AnimatedBackground";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { searchText } from "@/store/slices/generalSlice";
+import { useSearch } from "@/hooks/useSearch";
 import { useDebounce } from "@/hooks/useDebounce";
 
 interface SearchResultItem {
@@ -54,11 +53,9 @@ const HomePageSearch: React.FC = () => {
   const [focusedSuggestionIndex, setFocusedSuggestionIndex] = useState<number>(-1);
   const allSuggestionsRef = useRef<(HTMLButtonElement | null)[]>([]);
 
-  const dispatch = useAppDispatch();
-  const searchResults = useAppSelector((state) => state.general.search_data);
-
   // Debounced search query
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  const { data: searchResults } = useSearch(debouncedSearchQuery);
 
   // Add to ref helper - memoize to prevent unnecessary re-renders
   const addToFeatureRefs = useCallback((el: HTMLDivElement | null) => {
@@ -181,12 +178,7 @@ const HomePageSearch: React.FC = () => {
     { icon: <Tag className="w-4 h-4" />, label: "Products" },
   ], []);
 
-  // Effect to trigger search when debounced query changes
-  useEffect(() => {
-    if (debouncedSearchQuery.length >= 3) {
-      dispatch(searchText({ searchText: debouncedSearchQuery }));
-    }
-  }, [debouncedSearchQuery, dispatch]);
+  // Search is handled by TanStack Query hook
 
   // Memoize handlers to prevent unnecessary re-renders
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -196,10 +188,8 @@ const HomePageSearch: React.FC = () => {
 
   const handleSearchSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.length >= 3) {
-      dispatch(searchText({ searchText: searchQuery }));
-    }
-  }, [searchQuery, dispatch]);
+    // Search is handled by TanStack Query hook automatically
+  }, []);
 
   // Mock popular searches data - memoize
   const popularSearches = useMemo(() => [

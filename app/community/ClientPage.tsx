@@ -2,7 +2,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { Heart, MessageCircle, Share2, Bookmark, Star, Sparkles, Zap, Users, TrendingUp, Camera, Image, Video, Music, Hash, Smile, ChevronUp, Palette, Moon, Sun } from 'lucide-react';
+import { Heart, MessageCircle, Share2, Bookmark, Star, Sparkles, Zap, Users, TrendingUp, Camera, Image, Video, Music, Hash, Smile, ChevronUp, Palette, Moon, Sun, Plus } from 'lucide-react';
+import CreateCommunityModal from '@/components/modals/CreateCommunityModal';
+import { useQueryClient } from '@tanstack/react-query';
+
+// Backend API base
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8083';
 
 // Comment interface
 interface Comment {
@@ -57,187 +62,8 @@ interface AnimePost {
   };
 }
 
-// Sample data for demonstration
-const samplePosts: AnimePost[] = [
-  {
-    id: '1',
-    author: {
-      name: 'SakuraFan2024',
-      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-      level: 15,
-      favoriteAnime: 'Naruto'
-    },
-    content: 'Just finished watching Attack on Titan Season 4! The animation quality is absolutely incredible! 🔥 What did you all think about the final season?',
-    animeTags: ['Attack on Titan', 'Shingeki no Kyojin'],
-    mangaTags: [],
-    reactions: { likes: 42, comments: 8, shares: 3 },
-    timestamp: '2 hours ago',
-    type: 'text',
-    comments: [
-      {
-        id: 'c1',
-        author: {
-          name: 'AnimeLover99',
-          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-          level: 12
-        },
-        content: 'The final season was absolutely mind-blowing! The animation quality was top-notch! 🔥',
-        timestamp: '1 hour ago',
-        replies: [
-          {
-            id: 'r1',
-            author: {
-              name: 'SakuraFan2024',
-              avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-              level: 15
-            },
-            content: 'Right?! I was on the edge of my seat the entire time! 😱',
-            timestamp: '45 minutes ago',
-            replies: [],
-            reactions: { likes: 3 }
-          }
-        ],
-        reactions: { likes: 5 }
-      },
-      {
-        id: 'c2',
-        author: {
-          name: 'MangaReader',
-          avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-          level: 18
-        },
-        content: 'I read the manga first, but the anime adaptation exceeded all my expectations!',
-        timestamp: '30 minutes ago',
-        replies: [],
-        reactions: { likes: 2 }
-      }
-    ]
-  },
-  {
-    id: '2',
-    author: {
-      name: 'AnimeMaster',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-      level: 23,
-      favoriteAnime: 'One Piece'
-    },
-    content: 'My top 5 anime recommendations for beginners! These shows will definitely get you hooked on anime! ✨',
-    images: [
-      'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop',
-      'https://images.unsplash.com/photo-1613376023733-0a73315d9b06?w=400&h=300&fit=crop'
-    ],
-    animeTags: ['Demon Slayer', 'My Hero Academia', 'Spirited Away'],
-    mangaTags: ['One Piece', 'Naruto'],
-    reactions: { likes: 89, comments: 15, shares: 12 },
-    timestamp: '4 hours ago',
-    type: 'image',
-    comments: []
-  },
-  {
-    id: '3',
-    author: {
-      name: 'MangaReader',
-      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-      level: 18,
-      favoriteAnime: 'Studio Ghibli'
-    },
-    content: 'Just read the latest chapter of Jujutsu Kaisen! The art style is getting even more amazing! 🎨',
-    animeTags: ['Jujutsu Kaisen'],
-    mangaTags: ['Jujutsu Kaisen'],
-    reactions: { likes: 67, comments: 22, shares: 5 },
-    timestamp: '6 hours ago',
-    type: 'text',
-    comments: []
-  },
-  {
-    id: '4',
-    author: {
-      name: 'OtakuLife',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      level: 31,
-      favoriteAnime: 'Fullmetal Alchemist'
-    },
-    content: 'Check out this amazing anime recommendation!',
-    animeTags: ['Demon Slayer'],
-    mangaTags: [],
-    reactions: { likes: 156, comments: 28, shares: 19 },
-    timestamp: '1 day ago',
-    type: 'recommendation',
-    animeRecommendation: {
-      title: 'Demon Slayer: Kimetsu no Yaiba',
-      image: 'https://images.unsplash.com/photo-1613376023733-0a73315d9b06?w=300&h=400&fit=crop',
-      score: 9.2,
-      status: 'Completed'
-    },
-    comments: []
-  },
-  {
-    id: '5',
-    author: {
-      name: 'System',
-      avatar: 'https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=150&h=150&fit=crop&crop=face',
-      level: 99,
-      favoriteAnime: 'All Anime'
-    },
-    content: '🎉 Yeni Anime Güncellemesi!',
-    animeTags: ['One Piece'],
-    mangaTags: [],
-    reactions: { likes: 234, comments: 45, shares: 67 },
-    timestamp: '30 minutes ago',
-    type: 'auto-update',
-    autoUpdateData: {
-      title: 'One Piece - Yeni Bölüm Yayında!',
-      description: 'One Piece\'in yeni bölümü yayınlandı! Luffy\'nin macerası devam ediyor. Hemen izlemek için tıklayın!',
-      link: '/animes',
-      category: 'anime'
-    },
-    comments: []
-  },
-  {
-    id: '6',
-    author: {
-      name: 'NakamaChat',
-      avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face',
-      level: 50,
-      favoriteAnime: 'One Piece'
-    },
-    content: '🏴‍☠️ One Piece Nakama Sohbeti - Bugünkü konu: En sevdiğiniz arc hangisi?',
-    animeTags: ['One Piece'],
-    mangaTags: [],
-    reactions: { likes: 89, comments: 156, shares: 23 },
-    timestamp: '1 hour ago',
-    type: 'nakama',
-    isNakama: true,
-    nakamaMembers: 47,
-    comments: [
-      {
-        id: 'nc1',
-        author: {
-          name: 'LuffyFan',
-          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-          level: 25
-        },
-        content: 'Enies Lobby arc\'ı beni çok etkiledi! Robin\'in hikayesi çok duygusalydı 😭',
-        timestamp: '45 minutes ago',
-        replies: [
-          {
-            id: 'nr1',
-            author: {
-              name: 'ZoroLover',
-              avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-              level: 22
-            },
-            content: 'Aynen! "I want to live!" sahnesi unutulmaz! 🔥',
-            timestamp: '30 minutes ago',
-            replies: [],
-            reactions: { likes: 8 }
-          }
-        ],
-        reactions: { likes: 12 }
-      }
-    ]
-  }
-];
+// Initial empty list; will be populated from backend
+const samplePosts: AnimePost[] = [];
 
 // Popular Anime/Manga Interface
 interface PopularItem {
@@ -307,7 +133,9 @@ const popularAnime: PopularItem[] = [
 
 const CommunityPage: React.FC = () => {
   const { user } = useAuth();
+  console.log(user,"useruseruser")
   const { theme, setTheme, colors } = useTheme();
+  const queryClient = useQueryClient();
   const [posts, setPosts] = useState<AnimePost[]>(samplePosts);
   const [newPost, setNewPost] = useState('');
   const [selectedAnimeTags, setSelectedAnimeTags] = useState<string[]>([]);
@@ -323,8 +151,13 @@ const CommunityPage: React.FC = () => {
   const [showReplyBox, setShowReplyBox] = useState<{[commentId: string]: boolean}>({});
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [offset, setOffset] = useState(0);
+  const limit = 20;
+  const [showCreateCommunityModal, setShowCreateCommunityModal] = useState(false);
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const commentInputRefs = useRef<{[postId: string]: HTMLTextAreaElement | null}>({});
 
   // Dynamic banner images
   const bannerImages = [
@@ -393,6 +226,74 @@ const CommunityPage: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Yorumlar açıldığında input alanına focus yap
+  useEffect(() => {
+    expandedComments.forEach((postId) => {
+      setTimeout(() => {
+        const inputRef = commentInputRefs.current[postId];
+        if (inputRef) {
+          inputRef.focus();
+        }
+      }, 300);
+    });
+  }, [expandedComments]);
+
+  // Fetch main feed posts from backend
+  useEffect(() => {
+    const fetchPosts = async () => {
+      setIsLoading(true);
+      try {
+        const res = await fetch(`${API_BASE}/posts?userId=${user ? encodeURIComponent(user.uid) : ''}&limit=${limit}&offset=${offset}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const postsArr = Array.isArray(data.posts) ? data.posts : [];
+        // Filter unique posts by ID to avoid duplicates
+        const uniquePostsMap = new Map<number, any>();
+        postsArr.forEach((p: any) => {
+          if (p.id && !uniquePostsMap.has(p.id)) {
+            uniquePostsMap.set(p.id, p);
+          }
+        });
+        const uniquePosts = Array.from(uniquePostsMap.values());
+        
+        const mapped: AnimePost[] = uniquePosts.map((p: any) => ({
+          id: String(p.id),
+          author: {
+            name: p.username || 'User',
+            avatar: p.userAvatar?.Valid && p.userAvatar.String 
+              ? `${API_BASE}/${p.userAvatar.String}` 
+              : 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
+            level: p.userLevel || 1,
+            favoriteAnime: p.favoriteAnime?.Valid ? p.favoriteAnime.String : 'Anime Lover',
+          },
+          content: p.postContent || p.postTitle || '',
+          images: p.postImages?.Valid && p.postImages.String ? [p.postImages.String] : undefined,
+          animeTags: [],
+          mangaTags: [],
+          reactions: {
+            likes: p.likeCount ?? 0,
+            comments: p.commentCount ?? 0,
+            shares: 0,
+          },
+          timestamp: p.createdAt || 'now',
+          type: 'text',
+          comments: [],
+          isNakama: p.communityId && p.communityId > 0,
+        }));
+        setPosts(prev => offset === 0 ? mapped : [...prev, ...mapped]);
+        // Seed liked set from server, if available
+        const likedSet = new Set<string>();
+        postsArr.forEach((p: any) => { if (p.isLiked) likedSet.add(String(p.id)); });
+        if (likedSet.size) setLikedPosts(likedSet);
+      } catch (_) {
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchPosts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [offset, user?.uid]);
+
   // Popular anime/manga tags
   const popularAnimeTags = [
     'Attack on Titan', 'Demon Slayer', 'My Hero Academia', 'One Piece', 'Naruto',
@@ -407,63 +308,75 @@ const CommunityPage: React.FC = () => {
   ];
 
   const handleCreatePost = () => {
+    // Backend post creation requires communityId and postTitle; UI lacks these.
+    // Keep local-only creation disabled for now.
     if (!newPost.trim() || !user) return;
-
-    const post: AnimePost = {
-      id: Date.now().toString(),
-      author: {
-        name: user.displayName || 'Anonymous',
-        avatar: user.photoURL || 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-        level: Math.floor(Math.random() * 50) + 1,
-        favoriteAnime: 'Anime Lover'
-      },
-      content: newPost,
-      animeTags: selectedAnimeTags,
-      mangaTags: selectedMangaTags,
-      reactions: { likes: 0, comments: 0, shares: 0 },
-      timestamp: 'Just now',
-      type: 'text',
-      comments: []
-    };
-
-    setPosts([post, ...posts]);
     setNewPost('');
     setSelectedAnimeTags([]);
     setSelectedMangaTags([]);
     setShowCreatePost(false);
   };
 
-  const handleAddComment = (postId: string) => {
+  const handleAddComment = async (postId: string) => {
     if (!newComment[postId]?.trim() || !user) return;
-
-    const comment: Comment = {
-      id: Date.now().toString(),
-      author: {
-        name: user.displayName || 'Anonymous',
-        avatar: user.photoURL || 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-        level: Math.floor(Math.random() * 50) + 1
-      },
-      content: newComment[postId],
-      timestamp: 'Just now',
-      replies: [],
-      reactions: { likes: 0 }
-    };
-
-    setPosts(posts.map(post => {
-      if (post.id === postId) {
-        return {
-          ...post,
-          comments: [...post.comments, comment],
-          reactions: {
-            ...post.reactions,
-            comments: post.reactions.comments + 1
-          }
-        };
+    
+    const commentContent = newComment[postId].trim();
+    if (!commentContent) return;
+    
+    try {
+      const form = new FormData();
+      form.append('postId', String(Number(postId) || postId));
+      form.append('userId', String(user.uid));
+      form.append('commentContent', commentContent);
+      form.append('commentGifs', '[]'); // JSON array string olarak boş array
+      
+      const res = await fetch(`${API_BASE}/comment/create`, { 
+        method: 'POST', 
+        body: form 
+      });
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('Yorum oluşturulamadı:', res.status, errorText);
+        return;
       }
-      return post;
-    }));
-
-    setNewComment(prev => ({ ...prev, [postId]: '' }));
+      
+      const data = await res.json();
+      const commentID = data.commentId;
+      
+      if (!commentID) {
+        console.error('Yorum ID alınamadı');
+        return;
+      }
+      
+      // Backend'den başarılı response aldık, yorumu ekle
+      const comment: Comment = {
+        id: String(commentID),
+        author: {
+          name: user.displayName || 'Anonymous',
+          avatar: user.photoURL || 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
+          level: Math.floor(Math.random() * 50) + 1
+        },
+        content: commentContent,
+        timestamp: 'Şimdi',
+        replies: [],
+        reactions: { likes: 0 }
+      };
+      
+      setPosts(posts.map(post => post.id === postId ? {
+        ...post,
+        comments: [...post.comments, comment],
+        reactions: { ...post.reactions, comments: post.reactions.comments + 1 }
+      } : post));
+      
+      // Input alanını temizle
+      setNewComment(prev => ({ ...prev, [postId]: '' }));
+      
+      // Yorum başarıyla eklendi mesajı (opsiyonel)
+      console.log('Yorum başarıyla eklendi:', commentID);
+    } catch (error) {
+      console.error('Yorum gönderilirken hata oluştu:', error);
+    }
   };
 
   const handleAddReply = (postId: string, commentId: string) => {
@@ -505,15 +418,110 @@ const CommunityPage: React.FC = () => {
   };
 
   const toggleComments = (postId: string) => {
+    let willOpen = false;
+    
     setExpandedComments(prev => {
       const newSet = new Set(prev);
+      willOpen = !newSet.has(postId);
+      
       if (newSet.has(postId)) {
         newSet.delete(postId);
       } else {
         newSet.add(postId);
       }
+      
       return newSet;
     });
+    
+    // Yorumlar açılıyorsa backend'den fetch et ve input'a focus yap
+    if (willOpen) {
+      const post = posts.find(p => p.id === postId);
+      if (post && post.comments.length === 0) {
+        fetchCommentsForPost(postId);
+      }
+      
+      // Input alanına focus yap
+      setTimeout(() => {
+        const inputRef = commentInputRefs.current[postId];
+        if (inputRef) {
+          inputRef.focus();
+          // Input alanına scroll yap
+          inputRef.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }, 200);
+    }
+  };
+
+  const fetchCommentsForPost = async (postId: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/post/comments?postId=${postId}`);
+      if (!res.ok) {
+        console.error('Yorumlar getirilemedi:', res.status, res.statusText);
+        return;
+      }
+      
+      const data = await res.json();
+      const commentsArr = Array.isArray(data.comments) ? data.comments : [];
+      
+      console.log('Backend\'den gelen yorumlar:', commentsArr);
+      
+      // Timestamp formatlamak için helper fonksiyon
+      const formatTimestamp = (dateString: string) => {
+        if (!dateString) return 'now';
+        try {
+          const date = new Date(dateString);
+          const now = new Date();
+          const diffMs = now.getTime() - date.getTime();
+          const diffMins = Math.floor(diffMs / 60000);
+          const diffHours = Math.floor(diffMs / 3600000);
+          const diffDays = Math.floor(diffMs / 86400000);
+          
+          if (diffMins < 1) return 'Şimdi';
+          if (diffMins < 60) return `${diffMins} dakika önce`;
+          if (diffHours < 24) return `${diffHours} saat önce`;
+          if (diffDays < 7) return `${diffDays} gün önce`;
+          return date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+        } catch {
+          return dateString;
+        }
+      };
+
+      const mappedComments: Comment[] = commentsArr.map((c: any) => {
+        // Avatar URL'ini oluştur
+        let avatarUrl = 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face';
+        if (c.userAvatar?.Valid && c.userAvatar.String && c.userAvatar.String !== 'null') {
+          if (c.userAvatar.String === 'default.jpg') {
+            avatarUrl = 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face';
+          } else {
+            avatarUrl = `${API_BASE}/${c.userAvatar.String}`;
+          }
+        }
+
+        return {
+          id: String(c.id),
+          author: {
+            name: c.username || 'User',
+            avatar: avatarUrl,
+            level: c.userLevel || 1,
+          },
+          content: c.commentContent || '',
+          timestamp: formatTimestamp(c.createdAt),
+          replies: [], // Backend'den reply gelmiyorsa boş array
+          reactions: { likes: 0 } // Backend'den like count gelmiyorsa 0
+        };
+      });
+      
+      console.log('Map edilmiş yorumlar:', mappedComments);
+      
+      // Yorumları post'a ekle - functional update kullan
+      setPosts(prevPosts => prevPosts.map(post => 
+        post.id === postId 
+          ? { ...post, comments: mappedComments }
+          : post
+      ));
+    } catch (error) {
+      console.error('Yorumlar yüklenirken hata:', error);
+    }
   };
 
   const toggleReplies = (commentId: string) => {
@@ -535,30 +543,26 @@ const CommunityPage: React.FC = () => {
     }));
   };
 
-  const handleLike = (postId: string) => {
-    setPosts(posts.map(post => {
-      if (post.id === postId) {
-        const isLiked = likedPosts.has(postId);
-        return {
-          ...post,
-          reactions: {
-            ...post.reactions,
-            likes: isLiked ? post.reactions.likes - 1 : post.reactions.likes + 1
-          }
-        };
-      }
-      return post;
-    }));
-
+  const handleLike = async (postId: string) => {
+    const isLiked = likedPosts.has(postId);
+    // optimistic UI
+    setPosts(posts.map(post => post.id === postId ? {
+      ...post,
+      reactions: { ...post.reactions, likes: isLiked ? post.reactions.likes - 1 : post.reactions.likes + 1 }
+    } : post));
     setLikedPosts(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(postId)) {
-        newSet.delete(postId);
-      } else {
-        newSet.add(postId);
-      }
-      return newSet;
+      const ns = new Set(prev);
+      if (isLiked) ns.delete(postId); else ns.add(postId);
+      return ns;
     });
+    try {
+      const endpoint = isLiked ? '/post/unlike' : '/post/like';
+      await fetch(`${API_BASE}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ postId: Number(postId) || postId, userId: Number(user?.uid) || user?.uid })
+      });
+    } catch (_) {}
   };
 
   const handleBookmark = (postId: string) => {
@@ -1231,40 +1235,59 @@ const CommunityPage: React.FC = () => {
 
                 {/* Comments Section */}
                 {expandedComments.has(post.id) && (
-                  <div className="mt-6 pt-6 border-t border-white/10">
+                  <div className="mt-6 pt-6 border-t border-white/10 animate-in fade-in duration-300">
                     {/* Add Comment */}
-                    {user && (
-                      <div className="mb-6">
-                        <div className="flex items-center gap-3 mb-3">
-                          <img
-                            src={user.photoURL || 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face'}
-                            alt="Profile"
-                            className="w-8 h-8 rounded-full border border-purple-400"
-                          />
-                          <span className={`font-semibold ${colors.text}`}>{user.displayName || 'Anonymous'}</span>
-                        </div>
-                        <div className="flex gap-3">
+                    <div className="mb-6 animate-in slide-in-from-top-2 duration-300">
+                      {user ? (
+                        <>
+                          <div className="flex items-center gap-3 mb-3">
+                            <img
+                              src={user.photoURL || 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face'}
+                              alt="Profile"
+                              className="w-8 h-8 rounded-full border border-purple-400"
+                            />
+                            <span className={`font-semibold ${colors.text}`}>{user.displayName || 'Anonymous'}</span>
+                          </div>
+                          <div className="flex gap-3">
+                            <textarea
+                              ref={(el) => { commentInputRefs.current[post.id] = el; }}
+                              value={newComment[post.id] || ''}
+                              onChange={(e) => setNewComment(prev => ({ ...prev, [post.id]: e.target.value }))}
+                              placeholder="Yorumunuzu yazın..."
+                              className={`flex-1 rounded-xl p-3 resize-none focus:outline-none focus:ring-2 transition-all duration-200 ${
+                                theme === 'light'
+                                  ? 'bg-gray-50 border-2 border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-amber-500 focus:border-amber-500 shadow-sm'
+                                  : 'bg-white/10 border-2 border-white/30 text-white placeholder-gray-400 focus:ring-purple-500 focus:border-purple-500 shadow-lg'
+                              }`}
+                              rows={2}
+                            />
+                            <button
+                              onClick={() => handleAddComment(post.id)}
+                              disabled={!newComment[post.id]?.trim()}
+                              className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-semibold hover:from-purple-600 hover:to-pink-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed self-end"
+                            >
+                              Gönder
+                            </button>
+                          </div>
+                        </>
+                      ) : (
+                        <div className={`text-center p-4 rounded-xl ${theme === 'light' ? 'bg-amber-50 border border-amber-300' : 'bg-white/10 border border-white/20'}`}>
+                          <p className={`${colors.text} mb-2`}>Yorum yapmak için giriş yapmalısınız</p>
                           <textarea
+                            ref={(el) => { commentInputRefs.current[post.id] = el; }}
                             value={newComment[post.id] || ''}
-                            onChange={(e) => setNewComment(prev => ({ ...prev, [post.id]: e.target.value }))}
-                            placeholder="Yorumunuzu yazın..."
-                            className={`flex-1 rounded-xl p-3 resize-none focus:outline-none focus:ring-2 ${
+                            disabled
+                            placeholder="Giriş yapın..."
+                            className={`w-full rounded-xl p-3 resize-none opacity-50 cursor-not-allowed ${
                               theme === 'light'
-                                ? 'bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-amber-500'
-                                : 'bg-white/5 border border-white/20 text-white placeholder-gray-400 focus:ring-purple-500'
+                                ? 'bg-gray-100 border-2 border-gray-300 text-gray-900'
+                                : 'bg-white/5 border-2 border-white/20 text-white'
                             }`}
                             rows={2}
                           />
-                          <button
-                            onClick={() => handleAddComment(post.id)}
-                            disabled={!newComment[post.id]?.trim()}
-                            className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-semibold hover:from-purple-600 hover:to-pink-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed self-end"
-                          >
-                            Gönder
-                          </button>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
 
                     {/* Comments List */}
                     <div className="space-y-4">
@@ -1379,12 +1402,12 @@ const CommunityPage: React.FC = () => {
 
             {/* Load More Button */}
             <div className="text-center mt-8">
-              <button className={`px-8 py-3 text-white rounded-2xl font-semibold transition-all ${
+              <button onClick={() => setOffset(prev => prev + limit)} disabled={isLoading} className={`px-8 py-3 text-white rounded-2xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                 theme === 'light'
                   ? 'bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600'
                   : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600'
               }`}>
-                Load More Posts ✨
+                {isLoading ? 'Yükleniyor...' : 'Daha Fazla Gönderi ✨'}
               </button>
             </div>
           </div>
@@ -1406,6 +1429,32 @@ const CommunityPage: React.FC = () => {
           <ChevronUp className="w-6 h-6 group-hover:scale-110 transition-transform" />
         </button>
       )}
+
+      {/* Create Community Floating Button */}
+      <button
+        onClick={() => setShowCreateCommunityModal(true)}
+        className={`fixed bottom-8 left-8 px-6 py-4 text-white rounded-full shadow-2xl transition-all duration-300 z-50 flex items-center gap-2 group hover:scale-105 ${
+          theme === 'light'
+            ? 'bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600'
+            : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600'
+        }`}
+      >
+        <Plus className="w-5 h-5 group-hover:scale-110 transition-transform" />
+        <span className="font-semibold text-sm md:text-base">Create Community</span>
+      </button>
+
+      {/* Create Community Modal */}
+      <CreateCommunityModal
+        isOpen={showCreateCommunityModal}
+        onClose={() => setShowCreateCommunityModal(false)}
+        onSuccess={() => {
+          // Community created successfully, refetch posts
+          setOffset(0);
+          // Invalidate any community-related queries if they exist
+          queryClient.invalidateQueries({ queryKey: ['posts'] });
+          queryClient.invalidateQueries({ queryKey: ['communities'] });
+        }}
+      />
     </div>
   );
 };

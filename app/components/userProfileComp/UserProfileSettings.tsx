@@ -1,15 +1,4 @@
 // "use client";
-// import {
-//     fetchExploreCommunities,
-//     setCommunityJoinOrLeave,
-// } from "@/store/slices/communityGroupsSlice";
-// import {
-//     getProfile,
-//     selectUserProfile,
-//     setProfile,
-//     setProfilePrivacy,
-//     setProfileSecurity,
-// } from "@/store/slices/usersProfileSlice";
 // import { Dialog, Transition } from "@headlessui/react";
 // import {
 //     AlertOctagon,
@@ -31,10 +20,7 @@
 // } from "lucide-react";
 // import { Fragment, useEffect, useState } from "react";
 // import toast from "react-hot-toast";
-// import { useDispatch, useSelector } from "react-redux";
 // import {useRouter} from "next/navigation";
-// import {AppDispatch} from "@/store";
-// import {forgotChangePassword} from "@/store/slices/usersAuthSlice";
 //
 // export default function UserProfileSettings({
 //                                                 isOpen,
@@ -42,12 +28,7 @@
 //                                                 userCommunityList,
 //                                             }: any) {
 //     const [popularCommunity, setPopularCommunity] = useState([]);
-//     const userProfileData = useSelector(selectUserProfile);
-//     const communityExploreData = useSelector(
-//         (state: any) => state.communityGroups.communityExploreCommunitiesData
-//     );
 //     const router=useRouter();
-//     const dispatch = useDispatch<AppDispatch>();
 //     const getCommunityColor = (communityId: string, style?: string) => {
 //         const colors = [
 //             "red",

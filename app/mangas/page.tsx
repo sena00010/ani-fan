@@ -21,9 +21,26 @@ interface Manga {
 
 export default async function MangasPage() {
     const mangaData = await preloadGetMangasList();
-    const mangaArray = mangaData?.Mangas || mangaData || [];
 
-    console.log(mangaData,"mangaData")
+    console.log("🔍 Raw manga response:", mangaData);
+    console.log("🔑 Keys:", Object.keys(mangaData || {}));
+
+    // Doğru field'a eriş - muhtemelen "Mangas" olmalı
+    let mangaArray: Manga[] = [];
+    if (mangaData) {
+        if (Array.isArray(mangaData)) {
+            mangaArray = mangaData;
+        } else if (Array.isArray(mangaData.Mangas)) {
+            mangaArray = mangaData.Mangas;
+        } else if (Array.isArray(mangaData.data)) {
+            mangaArray = mangaData.data;
+        } else {
+            console.warn("⚠️ Unexpected manga data structure:", mangaData);
+        }
+    }
+
+    console.log("✅ Processed manga array length:", mangaArray.length);
+
     // MANGA için transformer (anime değil!)
     const transformMangaToCommonCard = (manga: Manga): CommonCardData => {
         return {
@@ -53,9 +70,7 @@ export default async function MangasPage() {
         };
     };
 
-    console.log(mangaData, "mangaList"); // İsim tutarlı
-
-    if (!mangaData || mangaData.length === 0) {
+    if (!mangaArray || mangaArray.length === 0) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
                 <div className="text-center bg-white p-8 rounded-xl shadow-lg">

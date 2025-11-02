@@ -8,6 +8,9 @@ import {
   Play, Pause, Volume2, MoreHorizontal, ThumbsUp, MessageSquare
 } from 'lucide-react';
 
+// Backend API base
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8083';
+
 // Nakama Community Interface
 interface NakamaCommunity {
   id: string;
@@ -76,26 +79,21 @@ interface NakamaActivity {
 
 // Sample Data
 const sampleNakama: NakamaCommunity = {
-  id: 'one-piece-nakama',
-  name: 'One Piece Nakama',
-  description: 'One Piece hayranları için özel topluluk! Luffy\'nin macerasına birlikte eşlik edelim. En sevdiğiniz arc\'ları tartışın, teoriler paylaşın ve yeni bölümleri birlikte izleyelim! 🏴‍☠️',
+  id: '',
+  name: 'Community',
+  description: '',
   banner: 'https://images.unsplash.com/photo-1613376023733-0a73315d9b06?w=1200&h=400&fit=crop',
   avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&h=200&fit=crop&crop=face',
   creator: {
-    name: 'LuffyFan2024',
+    name: 'Creator',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-    level: 45
+    level: 1
   },
-  members: 1247,
-  activeMembers: 89,
-  createdAt: '2 months ago',
-  tags: ['One Piece', 'Adventure', 'Shounen', 'Pirates'],
-  rules: [
-    'One Piece ile ilgili içerikler paylaşın',
-    'Spoiler\'ları gizleyin',
-    'Saygılı olun ve troll yapmayın',
-    'Spam yapmayın'
-  ],
+  members: 0,
+  activeMembers: 0,
+  createdAt: '',
+  tags: [],
+  rules: [],
   isJoined: false,
   isAdmin: false,
   isCreator: false
@@ -205,30 +203,121 @@ const NakamaPage: React.FC<NakamaPageProps> = ({ nakamaId }) => {
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [likedActivities, setLikedActivities] = useState<Set<string>>(new Set());
 
-  const handleJoinNakama = () => {
-    if (!user) return;
-    
-    setNakama(prev => ({
-      ...prev,
-      isJoined: true,
-      members: prev.members + 1,
-      activeMembers: prev.activeMembers + 1
-    }));
-    
-    // Add user to members
-    const newMember: NakamaMember = {
-      id: user.uid,
-      name: user.displayName || 'Anonymous',
-      avatar: user.photoURL || 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-      level: Math.floor(Math.random() * 50) + 1,
-      role: 'member',
-      joinedAt: 'Just now',
-      isOnline: true,
-      favoriteGenre: 'Adventure'
+  // Load community data, membership, and posts
+  useEffect(() => {
+    const communityIdNum = Number(nakamaId);
+    if (!Number.isFinite(communityIdNum)) return;
+
+    const fetchCommunity = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/community?communityId=${communityIdNum}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const c = data.community;
+        setNakama(prev => ({
+          ...prev,
+          id: String(c?.id ?? communityIdNum),
+          name: c?.name || c?.community_name || prev.name,
+          description: c?.description || prev.description,
+          members: c?.member_count ?? prev.members,
+          activeMembers: c?.active_member_count ?? prev.activeMembers,
+          createdAt: c?.created_at || prev.createdAt,
+          tags: Array.isArray(c?.tags) ? c.tags : prev.tags,
+        }));
+      } catch (e) {
+        // noop
+      }
     };
-    
-    setMembers(prev => [newMember, ...prev]);
-    setShowJoinModal(false);
+
+    const fetchMembership = async () => {
+      if (!user) return;
+      try {
+        const res = await fetch(`${API_BASE}/community/check-membership?communityId=${communityIdNum}&userId=${encodeURIComponent(user.uid)}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        setNakama(prev => ({ ...prev, isJoined: Boolean(data.isMember) }));
+      } catch (_) {}
+    };
+
+    const fetchPosts = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/community/posts?communityId=${communityIdNum}&userId=${user ? encodeURIComponent(user.uid) : ''}&limit=20&offset=0`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const posts = Array.isArray(data.posts) ? data.posts : [];
+        const mapped: NakamaActivity[] = posts.map((p: any) => ({
+          id: String(p.id),
+          type: 'discussion',
+          author: {
+            name: p.author_name || p.username || 'User',
+            avatar: p.author_avatar || p.avatar || 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
+            level: 1,
+          },
+          content: p.post_content || p.content || p.postTitle || '',
+          timestamp: p.created_at || 'now',
+          reactions: {
+            likes: p.like_count ?? 0,
+            comments: p.comment_count ?? 0,
+          },
+          isLiked: Boolean(p.isLiked),
+        }));
+        setActivities(mapped);
+      } catch (_) {}
+    };
+
+    fetchCommunity();
+    fetchMembership();
+    fetchPosts();
+  }, [nakamaId, user]);
+
+  const handleJoinNakama = async () => {
+    if (!user) return;
+    const communityIdNum = Number(nakamaId);
+    try {
+      const res = await fetch(`${API_BASE}/community/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ communityId: communityIdNum, userId: Number(user.uid) || user.uid })
+      });
+      if (!res.ok && res.status !== 409) return; // 409 if already joined
+      setNakama(prev => ({
+        ...prev,
+        isJoined: true,
+        members: prev.members + 1,
+        activeMembers: Math.max(prev.activeMembers, 1)
+      }));
+      const newMember: NakamaMember = {
+        id: user.uid,
+        name: user.displayName || 'Anonymous',
+        avatar: user.photoURL || 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
+        level: Math.floor(Math.random() * 50) + 1,
+        role: 'member',
+        joinedAt: 'Just now',
+        isOnline: true,
+        favoriteGenre: 'Adventure'
+      };
+      setMembers(prev => [newMember, ...prev]);
+      setShowJoinModal(false);
+    } catch (_) {}
+  };
+
+  const handleLeaveNakama = async () => {
+    if (!user) return;
+    const communityIdNum = Number(nakamaId);
+    try {
+      const res = await fetch(`${API_BASE}/community/leave`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ communityId: communityIdNum, userId: Number(user.uid) || user.uid })
+      });
+      if (!res.ok) return;
+      setNakama(prev => ({
+        ...prev,
+        isJoined: false,
+        members: Math.max(0, prev.members - 1),
+      }));
+      setMembers(prev => prev.filter(m => m.id !== user.uid));
+    } catch (_) {}
   };
 
   const handleLikeActivity = (activityId: string) => {
@@ -358,13 +447,12 @@ const NakamaPage: React.FC<NakamaPageProps> = ({ nakamaId }) => {
                   </button>
                 ) : (
                   <div className="flex gap-3">
+                    <button className="px-6 py-3 bg-white/20 text-white rounded-2xl font-semibold hover:bg-white/30 transition-all flex items-center gap-2" onClick={handleLeaveNakama}>
+                      Ayrıl
+                    </button>
                     <button className="px-6 py-3 bg-white/20 text-white rounded-2xl font-semibold hover:bg-white/30 transition-all flex items-center gap-2">
                       <Bell className="w-5 h-5" />
                       Bildirimler
-                    </button>
-                    <button className="px-6 py-3 bg-white/20 text-white rounded-2xl font-semibold hover:bg-white/30 transition-all flex items-center gap-2">
-                      <Settings className="w-5 h-5" />
-                      Ayarlar
                     </button>
                   </div>
                 )}

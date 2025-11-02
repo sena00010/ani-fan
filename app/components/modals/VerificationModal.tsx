@@ -1,8 +1,5 @@
 // import React, { useState, useRef, useEffect } from "react";
 // import { motion, AnimatePresence } from "framer-motion";
-// import { useDispatch } from "react-redux";
-// import { userVerification, reUserVerification } from "@/store/slices/usersAuthSlice";
-// import type { AppDispatch } from "@/store";
 // import {
 //     X,
 //     Mail,
@@ -19,14 +16,12 @@
 //     userEmail: string;
 //     onSuccess?: () => void;
 // }
-// import { getUserToken, setLoginUser } from "@/store/slices/usersAuthSlice";
 // const VerificationModal: React.FC<VerificationModalProps> = ({
 //                                                                  isOpen,
 //                                                                  onClose,
 //                                                                  userEmail,
 //                                                                  onSuccess
 //                                                              }) => {
-//     const dispatch = useDispatch<AppDispatch>();
 //     const [verificationCode, setVerificationCode] = useState(["", "", "", "", "", ""]);
 //     const [error, setError] = useState<string | null>(null);
 //     const [success, setSuccess] = useState(false);

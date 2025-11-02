@@ -1,8 +1,3 @@
-import {
-  fetchCommunityNotificationList,
-  setCommunityNotificationSeen,
-  setCommunityDeleteAllNotification,
-} from "@/store/slices/communityNotificationSlice";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   AlertTriangle,
@@ -18,7 +13,11 @@ import {
   CheckCheck,
 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import {
+  useCommunityNotifications,
+  useMarkNotificationsAsSeen,
+  useDeleteAllNotifications,
+} from "@/hooks/useCommunityNotifications";
 
 // Window size hook
 function useWindowSize() {
@@ -98,10 +97,13 @@ const Notification: React.FC<NotificationProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { width } = useWindowSize();
   const isMobile = width < 768;
-  const dispatch = useDispatch();
-  const communityNotificationListData = useSelector(
-      (state: any) => state.communityNotification.communityNotificationListData
-  );
+  const { data: communityNotificationListData } = useCommunityNotifications({
+    limit: 10,
+    offset: 0,
+    project: {},
+  });
+  const markAsSeenMutation = useMarkNotificationsAsSeen();
+  const deleteAllMutation = useDeleteAllNotifications();
 
   // Toggle function to open/close the notification panel
   const toggleNotification = () => {
@@ -121,16 +123,7 @@ const Notification: React.FC<NotificationProps> = ({
     setShowActionsMenu((prev) => !prev);
   };
 
-  // Fetch community notifications on mount
-  useEffect(() => {
-    dispatch(
-        fetchCommunityNotificationList({
-          limit: 10,
-          offset: 0,
-          project: {},
-        }) as any
-    );
-  }, [dispatch]);
+  // Fetch community notifications is handled by TanStack Query hook
 
   const mapCommunityNotification = (n: CommunityNotification): Notification => {
     const typeNum = Number(n.notification_type);
@@ -210,19 +203,9 @@ const Notification: React.FC<NotificationProps> = ({
 
     if (activeTab === "community" || activeTab === "all") {
       // Community bildirimlerini okundu olarak işaretle
-      await dispatch(
-          setCommunityNotificationSeen({
-            project: {},
-          }) as any
-      );
-      // Listeyi tekrar çek
-      dispatch(
-          fetchCommunityNotificationList({
-            limit: 10,
-            offset: 0,
-            project: {},
-          }) as any
-      );
+      await markAsSeenMutation.mutateAsync({
+        project: {},
+      });
     }
 
     if (activeTab !== "community") {
@@ -243,19 +226,9 @@ const Notification: React.FC<NotificationProps> = ({
 
     if (activeTab === "community" || activeTab === "all") {
       // Community bildirimlerini sil
-      await dispatch(
-          setCommunityDeleteAllNotification({
-            project: {},
-          }) as any
-      );
-      // Listeyi tekrar çek
-      dispatch(
-          fetchCommunityNotificationList({
-            limit: 10,
-            offset: 0,
-            project: {},
-          }) as any
-      );
+      await deleteAllMutation.mutateAsync({
+        project: {},
+      });
     }
 
     if (activeTab !== "community") {

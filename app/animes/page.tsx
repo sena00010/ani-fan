@@ -30,11 +30,24 @@ export default async function AnimesPage() {
     const animeData = await preloadGetAnimesList();
 
     // Önce veri yapısını kontrol et
-    console.log("Raw anime response:", animeData);
-    console.log("Keys:", Object.keys(animeData || {}));
+    console.log("🔍 Raw anime response:", animeData);
+    console.log("🔑 Keys:", Object.keys(animeData || {}));
 
     // Doğru field'a eriş - muhtemelen "Animes" olmalı
-    const animeArray = animeData?.Animes || animeData || [];
+    let animeArray: Anime[] = [];
+    if (animeData) {
+        if (Array.isArray(animeData)) {
+            animeArray = animeData;
+        } else if (Array.isArray(animeData.Animes)) {
+            animeArray = animeData.Animes;
+        } else if (Array.isArray(animeData.data)) {
+            animeArray = animeData.data;
+        } else {
+            console.warn("⚠️ Unexpected anime data structure:", animeData);
+        }
+    }
+
+    console.log("✅ Processed anime array length:", animeArray.length);
 
     // ANIME için transformer
     const transformAnimeToCommonCard = (anime: Anime): CommonCardData => {
@@ -65,9 +78,7 @@ export default async function AnimesPage() {
         };
     };
 
-    console.log(animeData, "animeList");
-
-    if (!animeData || animeData.length === 0) {
+    if (!animeArray || animeArray.length === 0) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
                 <div className="text-center bg-white p-8 rounded-xl shadow-lg">
