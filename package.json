@@ -20,6 +20,7 @@
     "browser-image-compression": "^2.0.2",
     "firebase": "^11.9.1",
     "framer-motion": "^10.16.4",
+    "gif-picker-react": "^1.4.0",
     "gsap": "^3.12.7",
     "js-cookie": "^3.0.5",
     "jwt-decode": "^4.0.0",

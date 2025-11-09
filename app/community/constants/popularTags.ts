@@ -1,0 +1,36 @@
+export const POPULAR_ANIME_TAGS = [
+  'Attack on Titan',
+  'Demon Slayer',
+  'My Hero Academia',
+  'One Piece',
+  'Naruto',
+  'Dragon Ball',
+  'Jujutsu Kaisen',
+  'Tokyo Ghoul',
+  'Death Note',
+  'Fullmetal Alchemist',
+  'Spirited Away',
+  'Your Name',
+  'Studio Ghibli',
+  'Bleach',
+  'Hunter x Hunter',
+];
+
+export const POPULAR_MANGA_TAGS = [
+  'One Piece',
+  'Naruto',
+  'Attack on Titan',
+  'Demon Slayer',
+  'My Hero Academia',
+  'Jujutsu Kaisen',
+  'Tokyo Ghoul',
+  'Death Note',
+  'Dragon Ball',
+  'Bleach',
+  'Hunter x Hunter',
+  'Fullmetal Alchemist',
+  'Black Clover',
+  'Fairy Tail',
+  'Sword Art Online',
+];
+

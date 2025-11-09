@@ -86,3 +86,36 @@ export const getCommunityColor = (slug: string): string => {
 
     return `${Math.floor(seconds)} seconds ago`;
 };
+
+export const formatCommunityDate = (
+    timestamp: string,
+    locale: string = 'en-US'
+): string => {
+    if (!timestamp) {
+        return '';
+    }
+
+    if (timestamp === '—') {
+        return timestamp;
+    }
+
+    try {
+        const date = new Date(timestamp);
+        if (Number.isNaN(date.getTime())) {
+            return timestamp;
+        }
+
+        const isTurkish = locale.toLowerCase().startsWith('tr');
+        const formatter = new Intl.DateTimeFormat(isTurkish ? 'tr-TR' : 'en-US', {
+            day: 'numeric',
+            month: isTurkish ? 'long' : 'short',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+        });
+
+        return formatter.format(date);
+    } catch {
+        return timestamp;
+    }
+};
